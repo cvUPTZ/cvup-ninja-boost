@@ -4,6 +4,11 @@ export const HeroSection = () => {
   return (
     <div className="min-h-screen bg-cvup-purple text-white flex flex-col justify-center items-center p-4 md:p-8">
       <div className="animate-fade-in max-w-4xl text-center">
+        <img 
+          src="/cvup-logo.png" 
+          alt="CVUP Logo" 
+          className="w-32 h-32 mx-auto mb-6"
+        />
         <h1 className="text-5xl md:text-7xl font-bold mb-4 text-cvup-peach">
           CV_UP
         </h1>
