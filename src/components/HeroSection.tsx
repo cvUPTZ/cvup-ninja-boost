@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { GraduationCap, Users, Award, FileText } from "lucide-react";
 import { useTranslation } from 'react-i18next';
-import logo from './assets/TAKILOGO.jpg';
+import logo from 'src/assets/TAKILOGO.jpg';
 
 // Performance-optimized icon component
 interface OptimizedIconProps {
