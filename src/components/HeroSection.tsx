@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { GraduationCap, Users, Award, FileText } from "lucide-react";
 import { useTranslation } from 'react-i18next';
+import logo from '@/assets/TAKI_LOGO.jpg';
 
 // Performance-optimized icon component
 interface OptimizedIconProps {
@@ -141,7 +142,7 @@ export const HeroSection: React.FC = () => {
               transition={{ duration: 0.6, type: "spring" }}
             >
               <img 
-                src="/TAKI_LOGO.jpg"  
+                src={logo}  
                 alt="Cvup Logo" 
                 className="w-full h-full rounded-full shadow-2xl object-cover"
               />
