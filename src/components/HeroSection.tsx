@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { GraduationCap, Users, Award, FileText } from "lucide-react";
-import { useTranslation } from 'next-i18next';
+import { useTranslation } from 'react-i18next';
 
 // Performance-optimized icon component
 interface OptimizedIconProps {
@@ -141,13 +140,10 @@ export const HeroSection: React.FC = () => {
               animate={{ scale: 1, opacity: 1 }}
               transition={{ duration: 0.6, type: "spring" }}
             >
-              <Image 
-                src="/images/TAKI_LOGO.jpg"  // Normalized filename
-                alt="CVUP Logo" 
-                fill
-                className="rounded-full shadow-2xl object-cover"
-                priority
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              <img 
+                src="/images/TAKI_LOGO.jpg"  
+                alt="Cvup Logo" 
+                className="w-full h-full rounded-full shadow-2xl object-cover"
               />
             </motion.div>
             <h1 className="text-5xl md:text-7xl font-bold mb-4 text-cvup-peach">
