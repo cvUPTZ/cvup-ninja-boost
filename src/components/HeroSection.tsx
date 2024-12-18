@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { GraduationCap, Users, Award, FileText } from "lucide-react";
-import { useTranslation } from 'react-i18next';
+import { useTranslation } from 'next-i18next';
 
 // Performance-optimized icon component
 interface OptimizedIconProps {
@@ -29,7 +30,7 @@ const StatCard: React.FC<StatCardProps> = React.memo(({
 }) => {
   const handleInteraction = () => {
     // Potential analytics tracking
-    if (analyticsTrackingId) {
+    if (analyticsTrackingId && typeof window !== 'undefined') {
       // Placeholder for analytics tracking
       // window.analytics.track(analyticsTrackingId);
     }
@@ -72,24 +73,25 @@ export const HeroSection: React.FC = () => {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    const img = new Image();
-    img.src = "/TAKI LOGO.jpg";
-    // cvUPTZ/cvup-ninja-boost/public/TAKI LOGO.jpg
-    // public/TAKI LOGO.jpg
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true);
-          observer.disconnect();
-        }
-      },
-      { threshold: 0.1 }
-    );
+    // Client-side only intersection observer
+    if (typeof window !== 'undefined' && typeof document !== 'undefined') {
+      const observer = new IntersectionObserver(
+        ([entry]) => {
+          if (entry.isIntersecting) {
+            setIsVisible(true);
+            observer.disconnect();
+          }
+        },
+        { threshold: 0.1 }
+      );
 
-    const heroSection = document.querySelector('#hero-section');
-    if (heroSection) observer.observe(heroSection);
+      const heroSection = document.querySelector('#hero-section');
+      if (heroSection) observer.observe(heroSection);
 
-    return () => observer.disconnect();
+      return () => {
+        if (heroSection) observer.unobserve(heroSection);
+      };
+    }
   }, []);
 
   const stats = useMemo(() => [
@@ -133,17 +135,21 @@ export const HeroSection: React.FC = () => {
             transition={{ duration: 0.8 }}
             className="max-w-4xl text-center w-full z-10"
           >
-            <motion.img 
-              src="/TAKI LOGO.jpg" 
-              alt="CVUP Logo" 
-              width={128}
-              height={128}
-              className="w-32 h-32 mx-auto mb-6 rounded-full shadow-2xl object-cover"
-              loading="lazy"
+            <motion.div 
+              className="relative w-32 h-32 mx-auto mb-6"
               initial={{ scale: 0.5, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ duration: 0.6, type: "spring" }}
-            />
+            >
+              <Image 
+                src="/images/TAKI_LOGO.jpg"  // Normalized filename
+                alt="CVUP Logo" 
+                fill
+                className="rounded-full shadow-2xl object-cover"
+                priority
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              />
+            </motion.div>
             <h1 className="text-5xl md:text-7xl font-bold mb-4 text-cvup-peach">
               CV_UP
             </h1>
