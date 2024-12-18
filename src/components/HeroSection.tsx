@@ -1,26 +1,28 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import dynamic from 'next/dynamic';
 import { motion, AnimatePresence } from 'framer-motion';
 import { GraduationCap, Users, Award, FileText } from "lucide-react";
-
-// Lazy-loaded internationalization
-const { useTranslation } = dynamic(() => import('next-i18next'), { ssr: false });
+import { useTranslation } from 'react-i18next';
 
 // Performance-optimized icon component
-const OptimizedIcon = React.memo(({ Icon, className }) => (
+interface OptimizedIconProps {
+  Icon: React.ComponentType<{ className?: string }>;
+  className?: string;
+}
+
+const OptimizedIcon = React.memo(({ Icon, className }: OptimizedIconProps) => (
   <Icon className={`w-full h-full ${className}`} />
 ));
 
 // Advanced stat card with interaction and analytics
 interface StatCardProps {
-  icon: React.ComponentType<{ className?: string }>;
+  Icon: React.ComponentType<{ className?: string }>;
   number: string;
   label: string;
   analyticsTrackingId?: string;
 }
 
 const StatCard: React.FC<StatCardProps> = React.memo(({ 
-  icon: Icon, 
+  Icon, 
   number, 
   label, 
   analyticsTrackingId 
@@ -73,7 +75,6 @@ export const HeroSection: React.FC = () => {
     const img = new Image();
     img.src = "/TAKI LOGO.jpg";
     
-    // Intersection Observer for lazy loading
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
@@ -90,7 +91,6 @@ export const HeroSection: React.FC = () => {
     return () => observer.disconnect();
   }, []);
 
-  // Memoized stats to prevent unnecessary re-renders
   const stats = useMemo(() => [
     {
       Icon: FileText,
