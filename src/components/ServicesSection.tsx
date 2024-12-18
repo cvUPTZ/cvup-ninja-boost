@@ -5,20 +5,28 @@ export const ServicesSection = () => {
     <div className="bg-white py-16 px-4 md:px-8">
       <div className="max-w-6xl mx-auto">
         <h2 className="text-3xl md:text-4xl font-bold text-cvup-purple text-center mb-12">
-          Our Services
+          Nos Services
         </h2>
         <div className="grid md:grid-cols-2 gap-8">
           <ServiceCard
             title="CV_UP"
-            description="Professional CV design service with high ATS success rate. Tailored for both junior and senior profiles."
+            description="Service professionnel de conception de CV avec un taux de réussite ATS élevé. Adapté aux profils juniors et seniors."
             icon={<BookOpen className="w-8 h-8" />}
-            features={["ATS-Optimized Templates", "Professional Review", "Interview Preparation"]}
+            features={[
+              "Modèles optimisés ATS",
+              "Révision professionnelle",
+              "Préparation aux entretiens"
+            ]}
           />
           <ServiceCard
             title="Skillit_UP"
-            description="Comprehensive training programs to enhance your professional skills."
+            description="Programmes de formation complets pour améliorer vos compétences professionnelles."
             icon={<Languages className="w-8 h-8" />}
-            features={["Language Courses (FR/EN)", "Soft Skills Training", "Excel Mastery"]}
+            features={[
+              "Cours de langues (FR/EN)",
+              "Formation soft skills",
+              "Maîtrise d'Excel"
+            ]}
           />
         </div>
       </div>

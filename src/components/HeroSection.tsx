@@ -8,13 +8,13 @@ export const HeroSection = () => {
           <span className="text-cvup-peach">باينة تلقى خدمة</span> CVUP مع
         </h1>
         <p className="text-xl md:text-2xl mb-8 text-gray-300">
-          🌟 Empowering Algerian youth to secure their dream jobs through
-          professional CV design and interview preparation 📄💼
+          🌟 Accompagnement des jeunes algériens vers leur emploi idéal grâce à
+          notre expertise en conception de CV et préparation aux entretiens 📄💼
         </p>
         <div className="flex flex-wrap justify-center gap-8 mt-12">
-          <StatCard icon={<Users />} number="2000+" label="CVs Created" />
-          <StatCard icon={<Award />} number="96%" label="ATS Success Rate" />
-          <StatCard icon={<GraduationCap />} number="10+" label="Training Events" />
+          <StatCard icon={<Users />} number="125" label="Entretiens" />
+          <StatCard icon={<Award />} number="83" label="Embauchés" />
+          <StatCard icon={<GraduationCap />} number="10+" label="Formations" />
         </div>
       </div>
     </div>

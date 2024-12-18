@@ -1,27 +1,59 @@
-import { Calendar, Users } from "lucide-react";
+import { BookOpen, Users, Linkedin } from "lucide-react";
 
 export const EventsTimeline = () => {
-  const events = [
-    { type: "Google Meet", count: 3, icon: <Calendar className="w-5 h-5" /> },
-    { type: "Scientific Club Events", count: 6, icon: <Users className="w-5 h-5" /> },
-    { type: "AIESEC Collaboration", count: 1, icon: <Users className="w-5 h-5" /> },
+  const clubs = [
+    {
+      name: "Civil & Civic ENP",
+      activities: "Formations: Rédaction de CV et Entretien",
+      icon: <BookOpen className="w-5 h-5" />
+    },
+    {
+      name: "Vision Club ENP",
+      activities: "Rédaction de CV",
+      icon: <BookOpen className="w-5 h-5" />
+    },
+    {
+      name: "CAP ENP",
+      activities: "Rédaction de CV",
+      icon: <BookOpen className="w-5 h-5" />
+    },
+    {
+      name: "Innovation Club ESGEN",
+      activities: "Rédaction de CV",
+      icon: <BookOpen className="w-5 h-5" />
+    },
+    {
+      name: "CFC ENSM",
+      activities: "Optimisation profil LinkedIn",
+      icon: <Linkedin className="w-5 h-5" />
+    },
+    {
+      name: "CFM ENSM",
+      activities: "Création de contenu sur LinkedIn",
+      icon: <Linkedin className="w-5 h-5" />
+    },
+    {
+      name: "Dotcom HEC",
+      activities: "Optimisation profil LinkedIn",
+      icon: <Linkedin className="w-5 h-5" />
+    }
   ];
 
   return (
     <div className="bg-cvup-purple text-white py-16 px-4 md:px-8">
       <div className="max-w-6xl mx-auto">
         <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">
-          Our <span className="text-cvup-peach">Impact</span>
+          Notre <span className="text-cvup-peach">Impact</span>
         </h2>
-        <div className="grid md:grid-cols-3 gap-8">
-          {events.map((event, index) => (
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {clubs.map((club, index) => (
             <div 
               key={index}
-              className="bg-white/10 p-6 rounded-lg backdrop-blur-sm text-center"
+              className="bg-white/10 p-6 rounded-lg backdrop-blur-sm"
             >
-              <div className="text-cvup-peach mb-4">{event.icon}</div>
-              <div className="text-4xl font-bold mb-2">{event.count}</div>
-              <div className="text-gray-300">{event.type}</div>
+              <div className="text-cvup-peach mb-4">{club.icon}</div>
+              <div className="text-xl font-bold mb-2">{club.name}</div>
+              <div className="text-gray-300">{club.activities}</div>
             </div>
           ))}
         </div>
