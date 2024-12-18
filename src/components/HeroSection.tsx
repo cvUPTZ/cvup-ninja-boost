@@ -141,7 +141,7 @@ export const HeroSection: React.FC = () => {
               transition={{ duration: 0.6, type: "spring" }}
             >
               <img 
-                src="/public/TAKI_LOGO.jpg"  
+                src="/TAKI_LOGO.jpg"  
                 alt="Cvup Logo" 
                 className="w-full h-full rounded-full shadow-2xl object-cover"
               />
