@@ -73,8 +73,9 @@ export const HeroSection: React.FC = () => {
 
   useEffect(() => {
     const img = new Image();
-    img.src = "/TAKI LOGO.jpg";
-    
+    img.src = "public/TAKI LOGO.jpg";
+    // cvUPTZ/cvup-ninja-boost/public/TAKI LOGO.jpg
+    // public/TAKI LOGO.jpg
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
