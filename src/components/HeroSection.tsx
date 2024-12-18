@@ -5,7 +5,7 @@ export const HeroSection = () => {
     <div className="min-h-screen bg-cvup-purple text-white flex flex-col justify-center items-center p-4 md:p-8">
       <div className="animate-fade-in max-w-4xl text-center">
         <img 
-          src="/cvup-logo.png" 
+          src="/TAKI LOGO.jpg" 
           alt="CVUP Logo" 
           className="w-32 h-32 mx-auto mb-6"
         />
