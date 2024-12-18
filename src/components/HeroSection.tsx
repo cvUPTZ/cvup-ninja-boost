@@ -65,12 +65,10 @@ const StatCard: React.FC<StatCardProps> = React.memo(({
   );
 });
 
-// Advanced Hero Section with Performance and Accessibility
 export const HeroSection: React.FC = () => {
   const { t } = useTranslation('common');
   const [isVisible, setIsVisible] = useState(false);
 
-  // Preload critical assets
   useEffect(() => {
     const img = new Image();
     img.src = "/TAKI LOGO.jpg";
@@ -163,7 +161,6 @@ export const HeroSection: React.FC = () => {
         )}
       </AnimatePresence>
 
-      {/* Optional decorative background elements */}
       <div className="absolute inset-0 bg-gradient-to-br from-cvup-purple to-purple-900 opacity-70 -z-10"></div>
     </section>
   );
