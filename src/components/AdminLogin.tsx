@@ -2,23 +2,25 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 
-export const AdminLogin: React.FC<{ onClose: () => void }> = ({ onClose }) => {
+interface AdminLoginProps {
+  onClose: () => void;
+}
+
+export const AdminLogin: React.FC<AdminLoginProps> = ({ onClose }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
-  const { login } = useAuth();
+  const { loginAdmin, error } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setError('');
 
     try {
-      await login(email, password);
+      await loginAdmin({ email, password });
       onClose();
     } catch (err) {
-      setError('Invalid admin credentials');
+      // Error is handled in AuthContext
     } finally {
       setIsLoading(false);
     }
