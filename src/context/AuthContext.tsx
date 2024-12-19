@@ -1,41 +1,61 @@
 // src/context/AuthContext.tsx
-
-import React, { createContext, useState, useContext, ReactNode } from "react";
+import React, { createContext, useState, useContext, ReactNode, useEffect } from "react";
+import { ADMIN_CREDENTIALS } from "../config/authConfig";
 
 interface AuthContextType {
-  isAuthenticated: boolean;
   isAdmin: boolean;
-  login: (role: "user" | "admin") => void;
-  logout: () => void;
+  loginAdmin: (credentials: { email: string; password: string }) => Promise<void>;
+  logoutAdmin: () => void;
+  error: string | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const login = (role: "user" | "admin") => {
-    setIsAuthenticated(true);
-    setIsAdmin(role === "admin");
+  // Check for existing admin session on mount
+  useEffect(() => {
+    const storedIsAdmin = localStorage.getItem('isAdmin');
+    if (storedIsAdmin === 'true') {
+      setIsAdmin(true);
+    }
+  }, []);
+
+  const loginAdmin = async (credentials: { email: string; password: string }) => {
+    try {
+      setError(null);
+
+      if (
+        credentials.email === ADMIN_CREDENTIALS.email &&
+        credentials.password === ADMIN_CREDENTIALS.password
+      ) {
+        setIsAdmin(true);
+        localStorage.setItem('isAdmin', 'true');
+        return;
+      }
+      
+      throw new Error('Invalid admin credentials');
+    } catch (err) {
+      setError('Invalid admin credentials');
+      throw err;
+    }
   };
 
-  const logout = () => {
-    setIsAuthenticated(false);
+  const logoutAdmin = () => {
     setIsAdmin(false);
+    localStorage.removeItem('isAdmin');
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, isAdmin, login, logout }}>
+    <AuthContext.Provider value={{ 
+      isAdmin, 
+      loginAdmin, 
+      logoutAdmin, 
+      error 
+    }}>
       {children}
     </AuthContext.Provider>
   );
-};
-
-export const useAuth = (): AuthContextType => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
-  return context;
 };
