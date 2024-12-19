@@ -49,7 +49,9 @@ export const EventsTimeline = () => {
           {clubs.map((club, index) => (
             <div 
               key={index}
-              className="bg-white/10 p-6 rounded-lg backdrop-blur-sm"
+              className={`bg-white/10 p-6 rounded-lg backdrop-blur-sm ${
+                index === clubs.length - 1 ? 'md:col-span-2 md:w-1/2 md:mx-auto' : ''
+              }`}
             >
               <div className="flex flex-col items-center text-center">
                 <div className="text-cvup-peach mb-4">{club.icon}</div>
