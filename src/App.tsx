@@ -10,6 +10,7 @@ import AdminPage from "@/pages/AdminPage";
 import ProtectedRoute from "@/components/ProtectedRoute"; // Import ProtectedRoute
 import Index from "./pages/Index";
 import './i18n';
+import Login from "@/pages/Login";
 
 const queryClient = new QueryClient();
 
@@ -23,7 +24,7 @@ const App = () => {
           <BrowserRouter>
             <Routes>
               <Route path="/" element={<Index />} />
-              {/* Protect the AdminPage route */}
+              <Route path="/login" element={<Login />} />
               <Route
                 path="/admin"
                 element={
