@@ -5,6 +5,8 @@ interface AuthContextType {
   isAdmin: boolean;
   login: (role: string) => void;
   logout: () => void;
+  loginAdmin: (credentials: { email: string; password: string }) => Promise<void>;
+  error: string | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -12,6 +14,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userRole, setUserRole] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const login = (role: string) => {
     setIsAuthenticated(true);
@@ -23,10 +26,25 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setUserRole(null);
   };
 
+  const loginAdmin = async (credentials: { email: string; password: string }) => {
+    try {
+      // Here you would typically make an API call to validate credentials
+      if (credentials.email === "admin@cvup.com" && credentials.password === "admin") {
+        login("admin");
+        setError(null);
+      } else {
+        throw new Error("Invalid credentials");
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An error occurred");
+      throw err;
+    }
+  };
+
   const isAdmin = isAuthenticated && userRole === "admin";
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, isAdmin, login, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated, isAdmin, login, logout, loginAdmin, error }}>
       {children}
     </AuthContext.Provider>
   );
