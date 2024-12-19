@@ -9,24 +9,19 @@ import { useAuth } from "@/context/AuthContext";
 // Updated Index component
 const Index = () => {
   const [showAdminLogin, setShowAdminLogin] = useState(false);
-  const { isAuthenticated, isAdmin, logout, user } = useAuth();
+  const { isAdmin, logoutAdmin } = useAuth();
 
   return (
     <div className="min-h-screen">
       {/* Admin Controls */}
-      <div className="fixed top-4 right-4 z-50 flex items-center gap-4">
-        {isAuthenticated && isAdmin ? (
-          <>
-            <span className="text-white bg-cvup-purple px-3 py-1 rounded">
-              {user?.email}
-            </span>
-            <button
-              onClick={logout}
-              className="bg-cvup-purple text-white px-4 py-2 rounded-lg hover:bg-opacity-90 transition-colors"
-            >
-              Logout
-            </button>
-          </>
+      <div className="fixed top-4 right-4 z-50">
+        {isAdmin ? (
+          <button
+            onClick={logoutAdmin}
+            className="bg-cvup-purple text-white px-4 py-2 rounded-lg hover:bg-opacity-90 transition-colors"
+          >
+            Admin Logout
+          </button>
         ) : (
           <button
             onClick={() => setShowAdminLogin(true)}
@@ -38,9 +33,7 @@ const Index = () => {
       </div>
 
       {/* Admin Login Modal */}
-      {showAdminLogin && (
-        <AdminLogin onClose={() => setShowAdminLogin(false)} />
-      )}
+      {showAdminLogin && <AdminLogin onClose={() => setShowAdminLogin(false)} />}
 
       {/* Main Content */}
       <HeroSection />
@@ -50,4 +43,10 @@ const Index = () => {
   );
 };
 
-export default Index;
+export const useAuth = (): AuthContextType => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
+};
