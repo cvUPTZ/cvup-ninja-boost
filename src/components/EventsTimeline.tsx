@@ -51,9 +51,11 @@ export const EventsTimeline = () => {
               key={index}
               className="bg-white/10 p-6 rounded-lg backdrop-blur-sm"
             >
-              <div className="text-cvup-peach mb-4">{club.icon}</div>
-              <div className="text-xl font-bold mb-2">{club.name}</div>
-              <div className="text-gray-300">{club.activities}</div>
+              <div className="flex flex-col items-center text-center">
+                <div className="text-cvup-peach mb-4">{club.icon}</div>
+                <div className="text-xl font-bold mb-2">{club.name}</div>
+                <div className="text-gray-300">{club.activities}</div>
+              </div>
             </div>
           ))}
         </div>
