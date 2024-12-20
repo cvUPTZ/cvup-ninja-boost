@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, ReactNode } from "react";
+import { ADMIN_CREDENTIALS } from "@/config/authConfig";
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -28,8 +29,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const loginAdmin = async (credentials: { email: string; password: string }) => {
     try {
-      // Here you would typically make an API call to validate credentials
-      if (credentials.email === "admin@cvup.com" && credentials.password === "admin") {
+      if (
+        credentials.email === ADMIN_CREDENTIALS.email && 
+        credentials.password === ADMIN_CREDENTIALS.password
+      ) {
         login("admin");
         setError(null);
       } else {
