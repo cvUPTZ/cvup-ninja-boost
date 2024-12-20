@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
+import { ChartContainer } from "@/components/ui/chart";
 
 interface EventsChartProps {
   eventStats: Array<{
@@ -9,6 +10,15 @@ interface EventsChartProps {
 }
 
 export const EventsChart = ({ eventStats }: EventsChartProps) => {
+  const chartConfig = {
+    data: {
+      theme: {
+        light: "#ffbd59",
+        dark: "#ffbd59",
+      },
+    },
+  };
+
   return (
     <Card className="bg-white shadow-md p-6 mb-8">
       <CardHeader>
@@ -16,15 +26,15 @@ export const EventsChart = ({ eventStats }: EventsChartProps) => {
       </CardHeader>
       <CardContent>
         <div className="h-[300px]">
-          <ResponsiveContainer width="100%" height="100%">
+          <ChartContainer config={chartConfig}>
             <BarChart data={eventStats}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="name" />
               <YAxis />
               <Tooltip />
-              <Bar dataKey="value" fill="#ffbd59" />
+              <Bar dataKey="value" fill="var(--color-data)" />
             </BarChart>
-          </ResponsiveContainer>
+          </ChartContainer>
         </div>
       </CardContent>
     </Card>
