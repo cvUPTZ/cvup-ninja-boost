@@ -1,6 +1,7 @@
 // src/components/AdminLogin.tsx
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 interface AdminLoginProps {
   onClose: () => void;
@@ -11,6 +12,7 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onClose }) => {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { loginAdmin, error } = useAuth();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -19,6 +21,7 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onClose }) => {
     try {
       await loginAdmin({ email, password });
       onClose();
+      navigate('/admin'); // Add navigation to admin page after successful login
     } catch (err) {
       // Error is handled in AuthContext
     } finally {
