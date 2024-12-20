@@ -1,39 +1,38 @@
-// src/pages/AdminPage.tsx
-
 import React, { useEffect, useState } from "react";
-import { useAuth } from "@/context/AuthContext"; // Assuming you're using AuthContext for user roles
-import { fetchUserStats, fetchAllUsers, blockUser, unblockUser } from "@/services/adminService"; // You can replace these with actual API calls
-
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  role: "user" | "admin";
-  status: "active" | "blocked";
-}
+import { useAuth } from "@/context/AuthContext";
+import { fetchUserStats, fetchAllUsers, blockUser, unblockUser } from "@/services/adminService";
+import { User, UserStats } from "@/types/adminTypes";
 
 const AdminPage: React.FC = () => {
-  const { isAuthenticated, isAdmin } = useAuth(); // Assuming you're using AuthContext
-  const [userStats, setUserStats] = useState<any>(null);
+  const { isAuthenticated, isAdmin } = useAuth();
+  const [userStats, setUserStats] = useState<UserStats | null>(null);
   const [users, setUsers] = useState<User[]>([]);
   const [loadingStats, setLoadingStats] = useState(true);
   const [loadingUsers, setLoadingUsers] = useState(true);
 
   useEffect(() => {
-    // Fetch statistics
     const loadStats = async () => {
       setLoadingStats(true);
-      const stats = await fetchUserStats();
-      setUserStats(stats);
-      setLoadingStats(false);
+      try {
+        const stats = await fetchUserStats();
+        setUserStats(stats);
+      } catch (error) {
+        console.error('Error loading stats:', error);
+      } finally {
+        setLoadingStats(false);
+      }
     };
 
-    // Fetch all users
     const loadUsers = async () => {
       setLoadingUsers(true);
-      const allUsers = await fetchAllUsers();
-      setUsers(allUsers);
-      setLoadingUsers(false);
+      try {
+        const allUsers = await fetchAllUsers();
+        setUsers(allUsers);
+      } catch (error) {
+        console.error('Error loading users:', error);
+      } finally {
+        setLoadingUsers(false);
+      }
     };
 
     if (isAuthenticated && isAdmin) {
@@ -42,24 +41,30 @@ const AdminPage: React.FC = () => {
     }
   }, [isAuthenticated, isAdmin]);
 
-  const handleBlockUser = (userId: string) => {
-    blockUser(userId).then(() => {
-      setUsers((prevUsers) => 
-        prevUsers.map((user) => 
-          user.id === userId ? { ...user, status: "blocked" } : user
+  const handleBlockUser = async (userId: string) => {
+    try {
+      const updatedUser = await blockUser(userId);
+      setUsers(prevUsers => 
+        prevUsers.map(user => 
+          user.id === userId ? { ...user, status: 'blocked' as const } : user
         )
       );
-    });
+    } catch (error) {
+      console.error('Error blocking user:', error);
+    }
   };
 
-  const handleUnblockUser = (userId: string) => {
-    unblockUser(userId).then(() => {
-      setUsers((prevUsers) => 
-        prevUsers.map((user) => 
-          user.id === userId ? { ...user, status: "active" } : user
+  const handleUnblockUser = async (userId: string) => {
+    try {
+      const updatedUser = await unblockUser(userId);
+      setUsers(prevUsers => 
+        prevUsers.map(user => 
+          user.id === userId ? { ...user, status: 'active' as const } : user
         )
       );
-    });
+    } catch (error) {
+      console.error('Error unblocking user:', error);
+    }
   };
 
   if (!isAuthenticated || !isAdmin) {
@@ -67,58 +72,84 @@ const AdminPage: React.FC = () => {
   }
 
   return (
-    <div className="admin-dashboard">
-      <h1>Admin Dashboard</h1>
-      <p>Here you can see the statistics and manage users.</p>
+    <div className="admin-dashboard p-6">
+      <h1 className="text-2xl font-bold mb-6">Admin Dashboard</h1>
+      <p className="mb-8">Here you can see the statistics and manage users.</p>
 
       {/* Statistics Section */}
-      <div className="stats-section">
-        <h2>User Statistics</h2>
+      <div className="stats-section bg-white p-6 rounded-lg shadow-md mb-8">
+        <h2 className="text-xl font-semibold mb-4">User Statistics</h2>
         {loadingStats ? (
           <p>Loading statistics...</p>
-        ) : (
-          <div>
-            <p>Total Users: {userStats.totalUsers}</p>
-            <p>Total Active Users: {userStats.activeUsers}</p>
-            <p>Total Blocked Users: {userStats.blockedUsers}</p>
+        ) : userStats ? (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="stat-card p-4 bg-gray-50 rounded-md">
+              <p className="text-lg font-medium">Total Users: {userStats.totalUsers}</p>
+            </div>
+            <div className="stat-card p-4 bg-gray-50 rounded-md">
+              <p className="text-lg font-medium">Active Users: {userStats.activeUsers}</p>
+            </div>
+            <div className="stat-card p-4 bg-gray-50 rounded-md">
+              <p className="text-lg font-medium">Blocked Users: {userStats.blockedUsers}</p>
+            </div>
           </div>
+        ) : (
+          <p>No statistics available</p>
         )}
       </div>
 
       {/* Users Management Section */}
-      <div className="users-management">
-        <h2>Manage Users</h2>
+      <div className="users-management bg-white p-6 rounded-lg shadow-md">
+        <h2 className="text-xl font-semibold mb-4">Manage Users</h2>
         {loadingUsers ? (
           <p>Loading users...</p>
         ) : (
-          <table>
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Role</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {users.map((user) => (
-                <tr key={user.id}>
-                  <td>{user.name}</td>
-                  <td>{user.email}</td>
-                  <td>{user.role}</td>
-                  <td>{user.status}</td>
-                  <td>
-                    {user.status === "active" ? (
-                      <button onClick={() => handleBlockUser(user.id)}>Block</button>
-                    ) : (
-                      <button onClick={() => handleUnblockUser(user.id)}>Unblock</button>
-                    )}
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="min-w-full table-auto">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {users.map((user) => (
+                  <tr key={user.id}>
+                    <td className="px-6 py-4 whitespace-nowrap">{user.name}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{user.email}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{user.role}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                        user.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                      }`}>
+                        {user.status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {user.status === 'active' ? (
+                        <button
+                          onClick={() => handleBlockUser(user.id)}
+                          className="text-red-600 hover:text-red-900"
+                        >
+                          Block
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => handleUnblockUser(user.id)}
+                          className="text-green-600 hover:text-green-900"
+                        >
+                          Unblock
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
     </div>
