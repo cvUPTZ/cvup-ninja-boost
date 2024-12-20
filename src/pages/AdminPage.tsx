@@ -132,7 +132,7 @@ const AdminPage: React.FC = () => {
         />
       )}
 
-      <EventsChart eventStats={eventStats} />
+{/*       <EventsChart eventStats={eventStats} /> */}
 
       <UserManagementTable
         users={users}
