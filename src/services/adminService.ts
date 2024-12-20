@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { User, UserStats } from '../types/adminTypes';
+import { User, UserStats, AnalyticsData } from '../types/adminTypes';
 
 const API_URL = 'https://preview--cvup-ninja-boost.lovable.app/';
 
@@ -16,10 +16,10 @@ export const fetchUserStats = async (): Promise<UserStats> => {
 export const fetchAllUsers = async (): Promise<User[]> => {
   try {
     const response = await axios.get<User[]>(`${API_URL}/admin/users`);
-    return response.data;
+    return Array.isArray(response.data) ? response.data : [];
   } catch (error) {
     console.error('Error fetching users:', error);
-    throw error;
+    return [];
   }
 };
 
@@ -40,5 +40,23 @@ export const unblockUser = async (userId: string): Promise<User> => {
   } catch (error) {
     console.error('Error unblocking user:', error);
     throw error;
+  }
+};
+
+export const fetchAnalytics = async (): Promise<AnalyticsData> => {
+  try {
+    const response = await axios.get<AnalyticsData>(`${API_URL}/admin/analytics`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching analytics:', error);
+    // Return default values if API fails
+    return {
+      totalVisits: 0,
+      totalClicks: 0,
+      totalInteractions: 0,
+      uniqueVisitors: 0,
+      averageSessionDuration: '0:00',
+      bounceRate: '0%'
+    };
   }
 };
