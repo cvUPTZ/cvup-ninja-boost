@@ -5,23 +5,43 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
 interface UserBehaviorStatsProps {
-  metrics: UserMetrics;
-  pageMetrics: PageMetrics[];
-  behavior: UserBehavior;
+  metrics: {
+    pageViews: number;
+    uniqueVisitors: number;
+    averageTimeSpent: number;
+    bounceRate: number;
+  };
+  pageMetrics: Array<{
+    path: string;
+    views: number;
+    uniqueViews: number;
+    averageTimeOnPage: number;
+    bounceRate: number;
+  }>;
+  behavior: {
+    clickEvents: Array<{
+      elementId: string;
+      clicks: number;
+      uniqueClicks: number;
+    }>;
+    scrollDepth: Array<{
+      percentage: string;
+      count: number;
+    }>;
+  };
   timeRange: string;
   onTimeRangeChange: (range: string) => void;
 }
 
-export const UserBehaviorStats = ({
+export const UserBehaviorStats: React.FC<UserBehaviorStatsProps> = ({
   metrics,
   pageMetrics,
   behavior,
   timeRange,
   onTimeRangeChange,
-}: UserBehaviorStatsProps) => {
+}) => {
   return (
     <div className="space-y-6">
-      {/* Overview Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <MetricCard
           title="Page Views"
@@ -49,7 +69,6 @@ export const UserBehaviorStats = ({
         />
       </div>
 
-      {/* Page Performance */}
       <Card>
         <CardHeader>
           <CardTitle>Page Performance</CardTitle>
@@ -80,7 +99,6 @@ export const UserBehaviorStats = ({
         </CardContent>
       </Card>
 
-      {/* Click Events */}
       <Card>
         <CardHeader>
           <CardTitle>Click Events</CardTitle>
@@ -100,7 +118,6 @@ export const UserBehaviorStats = ({
         </CardContent>
       </Card>
 
-      {/* Scroll Depth Analysis */}
       <Card>
         <CardHeader>
           <CardTitle>Scroll Depth Analysis</CardTitle>
@@ -122,7 +139,6 @@ export const UserBehaviorStats = ({
   );
 };
 
-// Metric Card Component
 const MetricCard = ({ title, value, trend, description }: {
   title: string;
   value: string | number;
