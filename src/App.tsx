@@ -28,6 +28,11 @@ const AnalyticsContainer = () => {
     return () => clearInterval(interval);
   }, []);
 
+  // Ensure we have data before rendering
+  if (!analyticsData) {
+    return <div>Loading analytics...</div>;
+  }
+
   return (
     <UserBehaviorStats
       metrics={analyticsData.metrics}
