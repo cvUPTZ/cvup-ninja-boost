@@ -1,62 +1,54 @@
-import axios from 'axios';
-import { User, UserStats, AnalyticsData } from '../types/adminTypes';
-
-const API_URL = 'https://preview--cvup-ninja-boost.lovable.app/';
+import { tracking } from './trackingService';
+import { AnalyticsData, User, UserStats } from '@/types/adminTypes';
 
 export const fetchUserStats = async (): Promise<UserStats> => {
-  try {
-    const response = await axios.get<UserStats>(`${API_URL}/admin/stats`);
-    return response.data;
-  } catch (error) {
-    console.error('Error fetching user stats:', error);
-    throw error;
-  }
+  // Simulated user stats for demo
+  return {
+    totalUsers: 150,
+    activeUsers: 120,
+    blockedUsers: 30,
+  };
 };
 
 export const fetchAllUsers = async (): Promise<User[]> => {
-  try {
-    const response = await axios.get<User[]>(`${API_URL}/admin/users`);
-    return Array.isArray(response.data) ? response.data : [];
-  } catch (error) {
-    console.error('Error fetching users:', error);
-    return [];
-  }
-};
-
-export const blockUser = async (userId: string): Promise<User> => {
-  try {
-    const response = await axios.post<User>(`${API_URL}/admin/block`, { userId });
-    return response.data;
-  } catch (error) {
-    console.error('Error blocking user:', error);
-    throw error;
-  }
-};
-
-export const unblockUser = async (userId: string): Promise<User> => {
-  try {
-    const response = await axios.post<User>(`${API_URL}/admin/unblock`, { userId });
-    return response.data;
-  } catch (error) {
-    console.error('Error unblocking user:', error);
-    throw error;
-  }
+  // Simulated users data for demo
+  return [
+    {
+      id: '1',
+      name: 'John Doe',
+      email: 'john@example.com',
+      status: 'active',
+      lastLogin: '2024-03-20',
+    },
+    {
+      id: '2',
+      name: 'Jane Smith',
+      email: 'jane@example.com',
+      status: 'active',
+      lastLogin: '2024-03-19',
+    },
+  ];
 };
 
 export const fetchAnalytics = async (): Promise<AnalyticsData> => {
-  try {
-    const response = await axios.get<AnalyticsData>(`${API_URL}/admin/analytics`);
-    return response.data;
-  } catch (error) {
-    console.error('Error fetching analytics:', error);
-    // Return default values if API fails
-    return {
-      totalVisits: 0,
-      totalClicks: 0,
-      totalInteractions: 0,
-      uniqueVisitors: 0,
-      averageSessionDuration: '0:00',
-      bounceRate: '0%'
-    };
-  }
+  const stats = tracking.getCurrentStats();
+  
+  return {
+    totalVisits: stats.metrics.pageViews,
+    totalClicks: stats.behavior.clickEvents.reduce((acc, event) => acc + event.clicks, 0),
+    totalInteractions: stats.behavior.clickEvents.length,
+    uniqueVisitors: stats.metrics.uniqueVisitors,
+    averageSessionDuration: `${stats.metrics.averageTimeSpent} min`,
+    bounceRate: `${stats.metrics.bounceRate}%`,
+  };
+};
+
+export const blockUser = async (userId: string): Promise<void> => {
+  // Simulated API call
+  console.log(`Blocking user ${userId}`);
+};
+
+export const unblockUser = async (userId: string): Promise<void> => {
+  // Simulated API call
+  console.log(`Unblocking user ${userId}`);
 };
