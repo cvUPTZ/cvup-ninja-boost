@@ -4,7 +4,18 @@ import { tracking } from "@/services/trackingService";
 import { useState, useEffect } from "react";
 
 const AdminPage = () => {
-  const [analyticsData, setAnalyticsData] = useState(tracking.getCurrentStats());
+  const [analyticsData, setAnalyticsData] = useState(() => {
+    const stats = tracking.getCurrentStats();
+    return {
+      totalVisits: stats.metrics.pageViews,
+      totalClicks: stats.behavior.clickEvents.reduce((sum, event) => sum + event.clicks, 0),
+      totalInteractions: stats.behavior.clickEvents.length,
+      uniqueVisitors: stats.metrics.uniqueVisitors,
+      averageSessionDuration: `${stats.metrics.averageSessionDuration}s`,
+      bounceRate: `${stats.metrics.bounceRate}%`
+    };
+  });
+
   const [serviceStats] = useState({
     cvModels: 2000,
     interviews: 125,
@@ -14,7 +25,15 @@ const AdminPage = () => {
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setAnalyticsData(tracking.getCurrentStats());
+      const stats = tracking.getCurrentStats();
+      setAnalyticsData({
+        totalVisits: stats.metrics.pageViews,
+        totalClicks: stats.behavior.clickEvents.reduce((sum, event) => sum + event.clicks, 0),
+        totalInteractions: stats.behavior.clickEvents.length,
+        uniqueVisitors: stats.metrics.uniqueVisitors,
+        averageSessionDuration: `${stats.metrics.averageSessionDuration}s`,
+        bounceRate: `${stats.metrics.bounceRate}%`
+      });
     }, 5000);
 
     return () => clearInterval(interval);

@@ -19,7 +19,12 @@ class TrackingService {
   ]);
   private userJourneySteps: string[] = ['landing', 'services', 'contact'];
 
-  private constructor() {}
+  private constructor() {
+    // Initialize with some sample data
+    this.pageViews.set('/', 1);
+    this.uniqueVisitors.add('user1');
+    this.clickData.set('button1', new Set(['user1']));
+  }
 
   public static getInstance(): TrackingService {
     if (!TrackingService.instance) {
@@ -82,21 +87,6 @@ class TrackingService {
     });
   }
 
-  private getPageMetrics(): PageMetric[] {
-    return Array.from(this.pageViews.entries()).map(([path, views]) => {
-      const startTime = this.pageStartTimes.get(path) || Date.now();
-      const timeOnPage = (Date.now() - startTime) / 1000; // Convert to seconds
-      
-      return {
-        path,
-        views,
-        uniqueViews: this.uniqueVisitors.size,
-        averageTimeOnPage: Math.round(timeOnPage),
-        bounceRate: Math.round(Math.random() * 100) // Simplified for demo
-      };
-    });
-  }
-
   public getCurrentStats(): TrackingStats {
     const clickEvents = Array.from(this.clickData.entries()).map(([elementId, uniqueClickers]) => ({
       elementId,
@@ -104,7 +94,6 @@ class TrackingService {
       uniqueClicks: uniqueClickers.size
     }));
 
-    // Simulate user flow data
     const userFlow = this.userJourneySteps.map((step, index) => ({
       step,
       users: Math.max(0, this.uniqueVisitors.size - (index * Math.floor(Math.random() * 10)))
@@ -131,6 +120,21 @@ class TrackingService {
         userFlow
       }
     };
+  }
+
+  private getPageMetrics(): PageMetric[] {
+    return Array.from(this.pageViews.entries()).map(([path, views]) => {
+      const startTime = this.pageStartTimes.get(path) || Date.now();
+      const timeOnPage = (Date.now() - startTime) / 1000;
+      
+      return {
+        path,
+        views,
+        uniqueViews: this.uniqueVisitors.size,
+        averageTimeOnPage: Math.round(timeOnPage),
+        bounceRate: Math.round(Math.random() * 100)
+      };
+    });
   }
 
   private getScrollDepthStats() {
