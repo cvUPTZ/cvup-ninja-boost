@@ -109,7 +109,7 @@ export const ServicesSection = () => {
       <Section title="Nos Formations" items={formations} />
       
       {/* Projects Section */}
-      <Section title="Nos Projets" items={projects} />
+      <Section title="Nos Programmes" items={projects} />
     </div>
   );
 };
