@@ -14,7 +14,9 @@ export interface UserInteraction {
 export interface TrackingMetrics {
   pageViews: number;
   uniqueVisitors: number;
+  returningVisitors: number;
   averageTimeSpent: number;
+  averageSessionDuration: number;
   bounceRate: number;
 }
 
@@ -35,6 +37,15 @@ export interface TrackingBehavior {
   scrollDepth: Array<{
     percentage: string;
     count: number;
+  }>;
+  deviceStats: {
+    desktop: number;
+    mobile: number;
+    tablet: number;
+  };
+  userFlow: Array<{
+    step: string;
+    users: number;
   }>;
 }
 
