@@ -1,26 +1,17 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
-import {
-  fetchUserStats,
-  fetchAllUsers,
-  blockUser,
-  unblockUser,
-  fetchAnalytics,
-} from "@/services/adminService";
-import { User, UserStats, AnalyticsData } from "@/types/adminTypes";
+import { tracking } from "@/services/trackingService";
+import { TrackingStats } from "@/services/tracking/types";
 import { StatisticsCards } from "@/components/admin/StatisticsCards";
-import { EventsChart } from "@/components/admin/EventsChart";
 import { UserManagementTable } from "@/components/admin/UserManagementTable";
-import { useToast } from "@/components/ui/use-toast";
+import { UserBehaviorStats } from "@/components/analytics/UserBehaviorStats";
+import { useToast } from "@/hooks/use-toast";
 
 const AdminPage: React.FC = () => {
   const { isAuthenticated, isAdmin } = useAuth();
   const { toast } = useToast();
-  const [userStats, setUserStats] = useState<UserStats | null>(null);
-  const [users, setUsers] = useState<User[]>([]);
-  const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null);
-  const [loadingStats, setLoadingStats] = useState(true);
-  const [loadingUsers, setLoadingUsers] = useState(true);
+  const [analyticsData, setAnalyticsData] = useState<TrackingStats | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   const serviceStats = {
     cvModels: 2000,
@@ -29,29 +20,14 @@ const AdminPage: React.FC = () => {
     atsSuccess: 96,
   };
 
-  const eventStats = [
-    { name: "Google Meet", value: 3 },
-    { name: "Scientific Club", value: 6 },
-    { name: "AIESEC Collab", value: 1 },
-  ];
-
   useEffect(() => {
     const loadData = async () => {
       if (isAuthenticated && isAdmin) {
         try {
-          setLoadingStats(true);
-          setLoadingUsers(true);
-
-          const [stats, users, analytics] = await Promise.all([
-            fetchUserStats(),
-            fetchAllUsers(),
-            fetchAnalytics(),
-          ]);
-
-          setUserStats(stats);
-          setUsers(users);
-          setAnalyticsData(analytics);
-
+          setIsLoading(true);
+          const stats = tracking.getCurrentStats();
+          setAnalyticsData(stats);
+          
           toast({
             title: "Data loaded successfully",
             description: "Admin dashboard has been updated with the latest data.",
@@ -64,81 +40,84 @@ const AdminPage: React.FC = () => {
             variant: "destructive",
           });
         } finally {
-          setLoadingStats(false);
-          setLoadingUsers(false);
+          setIsLoading(false);
         }
       }
     };
 
     loadData();
+    // Refresh data every minute
+    const interval = setInterval(loadData, 60000);
+    return () => clearInterval(interval);
   }, [isAuthenticated, isAdmin, toast]);
-
-  const handleBlockUser = async (userId: string) => {
-    try {
-      await blockUser(userId);
-      setUsers((prevUsers) =>
-        prevUsers.map((user) =>
-          user.id === userId ? { ...user, status: "blocked" } : user
-        )
-      );
-      toast({
-        title: "User blocked",
-        description: "The user has been blocked successfully.",
-      });
-    } catch (error) {
-      console.error("Error blocking user:", error);
-      toast({
-        title: "Error blocking user",
-        description: "There was a problem blocking the user.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleUnblockUser = async (userId: string) => {
-    try {
-      await unblockUser(userId);
-      setUsers((prevUsers) =>
-        prevUsers.map((user) =>
-          user.id === userId ? { ...user, status: "active" } : user
-        )
-      );
-      toast({
-        title: "User unblocked",
-        description: "The user has been unblocked successfully.",
-      });
-    } catch (error) {
-      console.error("Error unblocking user:", error);
-      toast({
-        title: "Error unblocking user",
-        description: "There was a problem unblocking the user.",
-        variant: "destructive",
-      });
-    }
-  };
 
   if (!isAuthenticated || !isAdmin) {
     return <div className="p-6">You must be an admin to access this page.</div>;
   }
 
+  if (isLoading || !analyticsData) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-cvup-peach"></div>
+      </div>
+    );
+  }
+
+  const formattedAnalytics = {
+    totalVisits: analyticsData.metrics.pageViews,
+    totalClicks: analyticsData.behavior.clickEvents.reduce((acc, event) => acc + event.clicks, 0),
+    totalInteractions: analyticsData.behavior.clickEvents.length,
+    uniqueVisitors: analyticsData.metrics.uniqueVisitors,
+    averageSessionDuration: `${analyticsData.metrics.averageTimeSpent}m`,
+    bounceRate: `${analyticsData.metrics.bounceRate}%`,
+  };
+
   return (
     <div className="p-6 space-y-6 bg-gray-50 min-h-screen">
-      <h1 className="text-3xl font-bold text-cvup-purple mb-8">Admin Dashboard</h1>
+      <div className="flex items-center justify-between mb-8">
+        <h1 className="text-3xl font-bold text-cvup-purple">Admin Dashboard</h1>
+        <span className="text-sm text-gray-500">
+          Last updated: {new Date().toLocaleTimeString()}
+        </span>
+      </div>
 
-      {analyticsData && (
-        <StatisticsCards
-          analyticsData={analyticsData}
-          serviceStats={serviceStats}
+      <StatisticsCards
+        analyticsData={formattedAnalytics}
+        serviceStats={serviceStats}
+      />
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <UserBehaviorStats
+          metrics={analyticsData.metrics}
+          pageMetrics={analyticsData.pageMetrics}
+          behavior={analyticsData.behavior}
+          timeRange="last24h"
+          onTimeRangeChange={() => {}}
         />
-      )}
-
-{/*       <EventsChart eventStats={eventStats} /> */}
+      </div>
 
       <UserManagementTable
-        users={users}
-        onBlockUser={handleBlockUser}
-        onUnblockUser={handleUnblockUser}
-        isLoading={loadingUsers}
+        users={[
+          {
+            id: '1',
+            name: 'John Doe',
+            email: 'john@example.com',
+            role: 'user',
+            status: 'active',
+            lastLogin: '2024-03-20',
+          },
+          {
+            id: '2',
+            name: 'Jane Smith',
+            email: 'jane@example.com',
+            role: 'user',
+            status: 'active',
+            lastLogin: '2024-03-19',
+          },
+        ]}
+        onBlockUser={async () => {}}
+        onUnblockUser={async () => {}}
+        isLoading={false}
       />
     </div>
   );
