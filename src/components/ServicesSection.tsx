@@ -79,7 +79,7 @@ export const ServicesSection = () => {
 
   const projects = [
     {
-      title: "Skill_It_UP",
+      title: "Skills Up",
       description: "Programme complet de développement des compétences professionnelles.",
       icon: <BookText className="w-8 h-8" />,
       features: [
@@ -89,7 +89,7 @@ export const ServicesSection = () => {
       ]
     },
     {
-      title: "CV CAN",
+      title: "CV Can",
       description: "Modèles de CV adaptés aux standards canadiens.",
       icon: <BookOpen className="w-8 h-8" />,
       features: [
