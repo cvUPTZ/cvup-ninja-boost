@@ -3,7 +3,6 @@ import { useAuth } from "@/context/AuthContext";
 import { tracking } from "@/services/trackingService";
 import { TrackingStats } from "@/services/tracking/types";
 import { StatisticsCards } from "@/components/admin/StatisticsCards";
-import { UserManagementTable } from "@/components/admin/UserManagementTable";
 import { UserBehaviorStats } from "@/components/analytics/UserBehaviorStats";
 import { useToast } from "@/hooks/use-toast";
 
@@ -86,39 +85,37 @@ const AdminPage: React.FC = () => {
         serviceStats={serviceStats}
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <UserBehaviorStats
-          metrics={analyticsData.metrics}
-          pageMetrics={analyticsData.pageMetrics}
-          behavior={analyticsData.behavior}
-          timeRange="last24h"
-          onTimeRangeChange={() => {}}
-        />
+      <div className="grid grid-cols-1 gap-6">
+        <div className="bg-white rounded-lg shadow p-6">
+          <h2 className="text-xl font-semibold text-cvup-purple mb-4">Page Performance</h2>
+          <div className="overflow-x-auto">
+            {analyticsData.pageMetrics && (
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b">
+                    <th className="text-left py-2">Page Path</th>
+                    <th className="text-left py-2">Views</th>
+                    <th className="text-left py-2">Unique Views</th>
+                    <th className="text-left py-2">Avg. Time (s)</th>
+                    <th className="text-left py-2">Bounce Rate</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {analyticsData.pageMetrics.map((metric, index) => (
+                    <tr key={index} className="border-b">
+                      <td className="py-2">{metric.path}</td>
+                      <td className="py-2">{metric.views}</td>
+                      <td className="py-2">{metric.uniqueViews}</td>
+                      <td className="py-2">{metric.averageTimeOnPage}</td>
+                      <td className="py-2">{metric.bounceRate}%</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+        </div>
       </div>
-
-      <UserManagementTable
-        users={[
-          {
-            id: '1',
-            name: 'John Doe',
-            email: 'john@example.com',
-            role: 'user',
-            status: 'active',
-            lastLogin: '2024-03-20',
-          },
-          {
-            id: '2',
-            name: 'Jane Smith',
-            email: 'jane@example.com',
-            role: 'user',
-            status: 'active',
-            lastLogin: '2024-03-19',
-          },
-        ]}
-        onBlockUser={async () => {}}
-        onUnblockUser={async () => {}}
-        isLoading={false}
-      />
     </div>
   );
 };
