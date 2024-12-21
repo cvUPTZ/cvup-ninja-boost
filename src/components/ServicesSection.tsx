@@ -79,7 +79,7 @@ export const ServicesSection = () => {
 
   const projects = [
     {
-      title: "Skills Up",
+      title: "Skill-up",
       description: "Programme complet de développement des compétences professionnelles.",
       icon: <BookText className="w-8 h-8" />,
       features: [
