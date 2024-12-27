@@ -5,7 +5,7 @@ import { getUserId } from './tracking/storageUtils';
 class TrackingService {
   private static instance: TrackingService;
   private initialized: boolean = false;
-  private pageViews: Map<string, Set<string>> = new Map(); // Changed to track unique IPs per page
+  private pageViews: Map<string, Set<string>> = new Map();
   private uniqueVisitors: Set<string> = new Set();
   private returningVisitors: Set<string> = new Set();
   private clickData: Map<string, Set<string>> = new Map();
@@ -18,13 +18,14 @@ class TrackingService {
     ['tablet', 0],
   ]);
   private userJourneySteps: string[] = ['landing', 'services', 'contact'];
-  private visitorIPs: Set<string> = new Set(); // New: Track unique IPs
+  private visitorIPs: Set<string> = new Set();
+  private lastUpdateTime: number = Date.now();
 
   private constructor() {
-    // Initialize maps for each page
     ['/', '/services', '/contact'].forEach(page => {
       this.pageViews.set(page, new Set());
     });
+    console.log('TrackingService initialized');
   }
 
   public static getInstance(): TrackingService {
@@ -34,24 +35,34 @@ class TrackingService {
     return TrackingService.instance;
   }
 
-  init() {
+  async init() {
     if (this.initialized) return;
-    this.trackPageView();
-    this.trackClicks();
-    this.trackScrollDepth();
-    this.trackDeviceType();
-    this.initialized = true;
-
-    // Get visitor's IP using a public API
-    this.getVisitorIP().then(ip => {
+    
+    console.log('Initializing tracking service...');
+    
+    try {
+      const ip = await this.getVisitorIP();
       if (ip) {
+        console.log('New visitor IP detected:', ip);
         this.visitorIPs.add(ip);
         const currentPath = window.location.pathname;
         const pageViewers = this.pageViews.get(currentPath) || new Set();
         pageViewers.add(ip);
         this.pageViews.set(currentPath, pageViewers);
+        
+        console.log('Updated page views for path:', currentPath);
+        console.log('Current unique visitors:', this.visitorIPs.size);
       }
-    });
+    } catch (error) {
+      console.error('Failed to initialize tracking:', error);
+    }
+
+    this.trackPageView();
+    this.trackClicks();
+    this.trackScrollDepth();
+    this.trackDeviceType();
+    this.initialized = true;
+    console.log('Tracking service initialized successfully');
   }
 
   private async getVisitorIP(): Promise<string | null> {
@@ -69,36 +80,51 @@ class TrackingService {
     const deviceType = getDeviceType(navigator.userAgent);
     const current = this.deviceTypes.get(deviceType) || 0;
     this.deviceTypes.set(deviceType, current + 1);
+    console.log('Device type tracked:', deviceType);
   }
 
-  private trackPageView() {
+  private async trackPageView() {
     const path = window.location.pathname;
     const userId = getUserId();
     
-    // Get visitor's IP and update metrics
-    this.getVisitorIP().then(ip => {
+    try {
+      const ip = await this.getVisitorIP();
       if (ip) {
         const pageViewers = this.pageViews.get(path) || new Set();
-        pageViewers.add(ip);
-        this.pageViews.set(path, pageViewers);
+        if (!pageViewers.has(ip)) {
+          console.log('New page view tracked for IP:', ip);
+          pageViewers.add(ip);
+          this.pageViews.set(path, pageViewers);
+        }
       }
-    });
+    } catch (error) {
+      console.error('Error tracking page view:', error);
+    }
     
     if (this.uniqueVisitors.has(userId)) {
       this.returningVisitors.add(userId);
     }
     this.uniqueVisitors.add(userId);
     this.pageStartTimes.set(path, Date.now());
+    
+    console.log('Page view tracked:', {
+      path,
+      totalViews: this.pageViews.get(path)?.size || 0,
+      uniqueVisitors: this.uniqueVisitors.size
+    });
   }
 
   private trackClicks() {
     document.addEventListener('click', (e) => {
       const target = e.target as HTMLElement;
       if (target.id) {
-        // Track unique users who clicked
         const uniqueClickers = this.clickData.get(target.id) || new Set();
         uniqueClickers.add(getUserId());
         this.clickData.set(target.id, uniqueClickers);
+        console.log('Click tracked:', {
+          elementId: target.id,
+          uniqueClickers: uniqueClickers.size
+        });
       }
     });
   }
@@ -113,11 +139,25 @@ class TrackingService {
       if (scrollPercent > maxScroll) {
         maxScroll = scrollPercent;
         this.scrollDepths.push(scrollPercent);
+        console.log('New max scroll depth:', scrollPercent);
       }
     });
   }
 
   public getCurrentStats(): TrackingStats {
+    // Only update if enough time has passed (5 seconds)
+    const now = Date.now();
+    if (now - this.lastUpdateTime < 5000) {
+      console.log('Skipping stats update - too soon');
+      return this.calculateStats();
+    }
+
+    this.lastUpdateTime = now;
+    console.log('Calculating current stats...');
+    return this.calculateStats();
+  }
+
+  private calculateStats(): TrackingStats {
     const totalPageViews = Array.from(this.pageViews.values())
       .reduce((total, viewers) => total + viewers.size, 0);
 
@@ -132,7 +172,7 @@ class TrackingService {
       users: Math.max(0, this.visitorIPs.size - (index * Math.floor(Math.random() * 10)))
     }));
 
-    return {
+    const stats = {
       metrics: {
         pageViews: totalPageViews,
         uniqueVisitors: this.visitorIPs.size,
@@ -153,6 +193,14 @@ class TrackingService {
         userFlow
       }
     };
+
+    console.log('Current stats calculated:', {
+      pageViews: stats.metrics.pageViews,
+      uniqueVisitors: stats.metrics.uniqueVisitors,
+      returningVisitors: stats.metrics.returningVisitors
+    });
+
+    return stats;
   }
 
   private getPageMetrics(): PageMetric[] {
