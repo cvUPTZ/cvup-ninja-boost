@@ -5,7 +5,7 @@ import { getUserId } from './tracking/storageUtils';
 class TrackingService {
   private static instance: TrackingService;
   private initialized: boolean = false;
-  private pageViews: Map<string, number> = new Map();
+  private pageViews: Map<string, Set<string>> = new Map(); // Changed to track unique IPs per page
   private uniqueVisitors: Set<string> = new Set();
   private returningVisitors: Set<string> = new Set();
   private clickData: Map<string, Set<string>> = new Map();
@@ -18,12 +18,13 @@ class TrackingService {
     ['tablet', 0],
   ]);
   private userJourneySteps: string[] = ['landing', 'services', 'contact'];
+  private visitorIPs: Set<string> = new Set(); // New: Track unique IPs
 
   private constructor() {
-    // Initialize with some sample data
-    this.pageViews.set('/', 1);
-    this.uniqueVisitors.add('user1');
-    this.clickData.set('button1', new Set(['user1']));
+    // Initialize maps for each page
+    ['/', '/services', '/contact'].forEach(page => {
+      this.pageViews.set(page, new Set());
+    });
   }
 
   public static getInstance(): TrackingService {
@@ -40,6 +41,28 @@ class TrackingService {
     this.trackScrollDepth();
     this.trackDeviceType();
     this.initialized = true;
+
+    // Get visitor's IP using a public API
+    this.getVisitorIP().then(ip => {
+      if (ip) {
+        this.visitorIPs.add(ip);
+        const currentPath = window.location.pathname;
+        const pageViewers = this.pageViews.get(currentPath) || new Set();
+        pageViewers.add(ip);
+        this.pageViews.set(currentPath, pageViewers);
+      }
+    });
+  }
+
+  private async getVisitorIP(): Promise<string | null> {
+    try {
+      const response = await fetch('https://api.ipify.org?format=json');
+      const data = await response.json();
+      return data.ip;
+    } catch (error) {
+      console.error('Failed to get visitor IP:', error);
+      return null;
+    }
   }
 
   private trackDeviceType() {
@@ -51,8 +74,15 @@ class TrackingService {
   private trackPageView() {
     const path = window.location.pathname;
     const userId = getUserId();
-    const currentViews = this.pageViews.get(path) || 0;
-    this.pageViews.set(path, currentViews + 1);
+    
+    // Get visitor's IP and update metrics
+    this.getVisitorIP().then(ip => {
+      if (ip) {
+        const pageViewers = this.pageViews.get(path) || new Set();
+        pageViewers.add(ip);
+        this.pageViews.set(path, pageViewers);
+      }
+    });
     
     if (this.uniqueVisitors.has(userId)) {
       this.returningVisitors.add(userId);
@@ -88,6 +118,9 @@ class TrackingService {
   }
 
   public getCurrentStats(): TrackingStats {
+    const totalPageViews = Array.from(this.pageViews.values())
+      .reduce((total, viewers) => total + viewers.size, 0);
+
     const clickEvents = Array.from(this.clickData.entries()).map(([elementId, uniqueClickers]) => ({
       elementId,
       clicks: uniqueClickers.size,
@@ -96,17 +129,17 @@ class TrackingService {
 
     const userFlow = this.userJourneySteps.map((step, index) => ({
       step,
-      users: Math.max(0, this.uniqueVisitors.size - (index * Math.floor(Math.random() * 10)))
+      users: Math.max(0, this.visitorIPs.size - (index * Math.floor(Math.random() * 10)))
     }));
 
     return {
       metrics: {
-        pageViews: Array.from(this.pageViews.values()).reduce((a, b) => a + b, 0),
-        uniqueVisitors: this.uniqueVisitors.size,
+        pageViews: totalPageViews,
+        uniqueVisitors: this.visitorIPs.size,
         returningVisitors: this.returningVisitors.size,
         averageTimeSpent: Math.floor((Date.now() - this.sessionStartTime) / 60000),
         averageSessionDuration: Math.floor((Date.now() - this.sessionStartTime) / 1000),
-        bounceRate: Math.round(Math.random() * 100)
+        bounceRate: Math.round((this.visitorIPs.size - this.returningVisitors.size) / this.visitorIPs.size * 100)
       },
       pageMetrics: this.getPageMetrics(),
       behavior: {
@@ -123,14 +156,14 @@ class TrackingService {
   }
 
   private getPageMetrics(): PageMetric[] {
-    return Array.from(this.pageViews.entries()).map(([path, views]) => {
+    return Array.from(this.pageViews.entries()).map(([path, viewers]) => {
       const startTime = this.pageStartTimes.get(path) || Date.now();
       const timeOnPage = (Date.now() - startTime) / 1000;
       
       return {
         path,
-        views,
-        uniqueViews: this.uniqueVisitors.size,
+        views: viewers.size,
+        uniqueViews: viewers.size,
         averageTimeOnPage: Math.round(timeOnPage),
         bounceRate: Math.round(Math.random() * 100)
       };
