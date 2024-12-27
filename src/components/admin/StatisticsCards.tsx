@@ -1,5 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, FileCheck, UserCheck, ArrowUpRight } from "lucide-react";
+import { tracking } from "@/services/trackingService";
+import { useEffect, useState } from "react";
 
 interface StatisticsCardsProps {
   analyticsData: {
@@ -19,6 +21,25 @@ interface StatisticsCardsProps {
 }
 
 export const StatisticsCards = ({ analyticsData, serviceStats }: StatisticsCardsProps) => {
+  const [metrics, setMetrics] = useState(analyticsData);
+
+  useEffect(() => {
+    const updateMetrics = () => {
+      const stats = tracking.getCurrentStats();
+      setMetrics({
+        totalVisits: stats.metrics.pageViews,
+        totalClicks: stats.behavior.clickEvents.reduce((sum, event) => sum + event.clicks, 0),
+        totalInteractions: stats.behavior.clickEvents.length,
+        uniqueVisitors: stats.metrics.uniqueVisitors,
+        averageSessionDuration: `${stats.metrics.averageSessionDuration}s`,
+        bounceRate: `${stats.metrics.bounceRate}%`
+      });
+    };
+
+    const interval = setInterval(updateMetrics, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
       <Card className="bg-white shadow-md hover:shadow-lg transition-shadow border-l-4 border-l-[#ffbd59]">

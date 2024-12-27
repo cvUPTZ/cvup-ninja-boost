@@ -4,7 +4,6 @@ import { GraduationCap, Users, Award, FileText } from "lucide-react";
 import { useTranslation } from 'react-i18next';
 import logo from '@/assets/TAKILOGO.jpg';
 
-// Performance-optimized icon component
 interface OptimizedIconProps {
   Icon: React.ComponentType<{ className?: string }>;
   className?: string;
@@ -147,16 +146,16 @@ export const HeroSection: React.FC = () => {
                 className="w-full h-full rounded-full shadow-2xl object-cover"
               />
             </motion.div>
-            <h1 className="text-5xl md:text-7xl font-bold mb-4 text-cvup-peach">
+            <h1 className="text-5xl md:text-7xl font-bold mb-4 text-cvup-peach text-center">
               CV_UP
             </h1>
-            <h2 className="text-4xl md:text-6xl font-bold mb-6">
+            <h2 className="text-4xl md:text-6xl font-bold mb-6 text-center">
               <span className="text-cvup-peach">باينة تلقى خدمة</span> CVUP مع
             </h2>
-            <p className="text-xl md:text-2xl mb-8 text-gray-300 max-w-2xl mx-auto">
+            <p className="text-xl md:text-2xl mb-8 text-gray-300 max-w-2xl mx-auto text-center">
               {t('hero.description')}
             </p>
-            <div className="flex flex-wrap justify-center gap-8 mt-12 max-w-4xl mx-auto">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mt-12 max-w-4xl mx-auto">
               {stats.map((stat, index) => (
                 <StatCard key={index} {...stat} />
               ))}
