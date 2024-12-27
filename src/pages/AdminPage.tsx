@@ -1,5 +1,6 @@
 import { StatisticsCards } from "@/components/admin/StatisticsCards";
 import { PolicySection } from "@/components/admin/PolicySection";
+import { ManagementPanel } from "@/components/admin/ManagementPanel";
 import { tracking } from "@/services/trackingService";
 import { useState, useEffect } from "react";
 
@@ -49,6 +50,10 @@ const AdminPage = () => {
         analyticsData={analyticsData}
         serviceStats={serviceStats}
       />
+
+      <div className="mt-8">
+        <ManagementPanel />
+      </div>
 
       <div className="mt-12">
         <PolicySection />
