@@ -3,19 +3,18 @@ import { PolicySection } from "@/components/admin/PolicySection";
 import { ManagementPanel } from "@/components/admin/ManagementPanel";
 import { tracking } from "@/services/trackingService";
 import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { UserBehaviorStats } from "@/components/analytics/UserBehaviorStats";
 
 const AdminPage = () => {
-  const [analyticsData, setAnalyticsData] = useState(() => {
-    const stats = tracking.getCurrentStats();
-    return {
-      totalVisits: stats.metrics.pageViews,
-      totalClicks: stats.behavior.clickEvents.reduce((sum, event) => sum + event.clicks, 0),
-      totalInteractions: stats.behavior.clickEvents.length,
-      uniqueVisitors: stats.metrics.uniqueVisitors,
-      averageSessionDuration: `${stats.metrics.averageSessionDuration}s`,
-      bounceRate: `${stats.metrics.bounceRate}%`
-    };
-  });
+  const [analyticsData, setAnalyticsData] = useState(() => ({
+    totalVisits: 0,
+    totalClicks: 0,
+    totalInteractions: 0,
+    uniqueVisitors: 0,
+    averageSessionDuration: '0s',
+    bounceRate: '0%'
+  }));
 
   const [serviceStats] = useState({
     cvModels: 2000,
@@ -25,8 +24,8 @@ const AdminPage = () => {
   });
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      const stats = tracking.getCurrentStats();
+    const fetchMetrics = async () => {
+      const stats = await tracking.getCurrentStats();
       setAnalyticsData({
         totalVisits: stats.metrics.pageViews,
         totalClicks: stats.behavior.clickEvents.reduce((sum, event) => sum + event.clicks, 0),
@@ -35,9 +34,42 @@ const AdminPage = () => {
         averageSessionDuration: `${stats.metrics.averageSessionDuration}s`,
         bounceRate: `${stats.metrics.bounceRate}%`
       });
-    }, 5000);
+    };
 
+    fetchMetrics();
+    const interval = setInterval(fetchMetrics, 5000);
     return () => clearInterval(interval);
+  }, []);
+
+  // Subscribe to real-time updates
+  useEffect(() => {
+    const channel = supabase
+      .channel('metrics-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'aggregated_metrics'
+        },
+        async (payload) => {
+          console.log('Metrics updated:', payload);
+          const stats = await tracking.getCurrentStats();
+          setAnalyticsData({
+            totalVisits: stats.metrics.pageViews,
+            totalClicks: stats.behavior.clickEvents.reduce((sum, event) => sum + event.clicks, 0),
+            totalInteractions: stats.behavior.clickEvents.length,
+            uniqueVisitors: stats.metrics.uniqueVisitors,
+            averageSessionDuration: `${stats.metrics.averageSessionDuration}s`,
+            bounceRate: `${stats.metrics.bounceRate}%`
+          });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   return (
@@ -50,6 +82,14 @@ const AdminPage = () => {
         analyticsData={analyticsData}
         serviceStats={serviceStats}
       />
+
+      <div className="mt-8">
+        <UserBehaviorStats
+          metrics={analyticsData}
+          timeRange="realtime"
+          onTimeRangeChange={() => {}}
+        />
+      </div>
 
       <div className="mt-8">
         <ManagementPanel />

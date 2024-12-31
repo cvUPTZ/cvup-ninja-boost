@@ -3,6 +3,7 @@ import { getBrowserInfo, getOSInfo, getDeviceType } from './tracking/deviceUtils
 import { getUserId } from './tracking/storageUtils';
 import { storePageView, storeUserInteraction, updateAggregatedMetrics } from './tracking/metricsStorage';
 import { v4 as uuidv4 } from 'uuid';
+import { supabase } from "@/integrations/supabase/client";
 
 class TrackingService {
   private static instance: TrackingService;
@@ -158,7 +159,6 @@ class TrackingService {
   }
 
   public async getCurrentStats(): Promise<TrackingStats> {
-    // Only update if enough time has passed (5 seconds)
     const now = Date.now();
     if (now - this.lastUpdateTime < 5000) {
       console.log('Skipping stats update - too soon');
@@ -170,15 +170,28 @@ class TrackingService {
     const stats = this.calculateStats();
     
     // Store aggregated metrics in Supabase
-    await updateAggregatedMetrics({
-      totalVisits: stats.metrics.pageViews,
-      uniqueVisitors: stats.metrics.uniqueVisitors,
-      totalClicks: stats.metrics.returningVisitors,
-      averageSessionDuration: stats.metrics.averageSessionDuration,
-      bounceRate: parseFloat(stats.metrics.bounceRate)
-    });
+    await this.storeMetrics(stats);
 
     return stats;
+  }
+
+  private async storeMetrics(stats: TrackingStats) {
+    try {
+      const { error } = await supabase
+        .from('aggregated_metrics')
+        .insert({
+          total_visits: stats.metrics.pageViews,
+          unique_visitors: stats.metrics.uniqueVisitors,
+          total_clicks: stats.metrics.returningVisitors,
+          average_session_duration: stats.metrics.averageSessionDuration,
+          bounce_rate: stats.metrics.bounceRate
+        });
+
+      if (error) throw error;
+      console.log('Metrics stored successfully');
+    } catch (error) {
+      console.error('Error storing metrics:', error);
+    }
   }
 
   private calculateStats(): TrackingStats {
