@@ -31,45 +31,14 @@ const AdminPage = () => {
         totalClicks: stats.behavior.clickEvents.reduce((sum, event) => sum + event.clicks, 0),
         totalInteractions: stats.behavior.clickEvents.length,
         uniqueVisitors: stats.metrics.uniqueVisitors,
-        averageSessionDuration: `${stats.metrics.averageSessionDuration}s`,
-        bounceRate: `${stats.metrics.bounceRate}%`
+        averageSessionDuration: `${Math.round(stats.metrics.averageSessionDuration)}s`,
+        bounceRate: `${Math.round(stats.metrics.bounceRate)}%`
       });
     };
 
     fetchMetrics();
     const interval = setInterval(fetchMetrics, 5000);
     return () => clearInterval(interval);
-  }, []);
-
-  // Subscribe to real-time updates
-  useEffect(() => {
-    const channel = supabase
-      .channel('metrics-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'aggregated_metrics'
-        },
-        async (payload) => {
-          console.log('Metrics updated:', payload);
-          const stats = await tracking.getCurrentStats();
-          setAnalyticsData({
-            totalVisits: stats.metrics.pageViews,
-            totalClicks: stats.behavior.clickEvents.reduce((sum, event) => sum + event.clicks, 0),
-            totalInteractions: stats.behavior.clickEvents.length,
-            uniqueVisitors: stats.metrics.uniqueVisitors,
-            averageSessionDuration: `${stats.metrics.averageSessionDuration}s`,
-            bounceRate: `${stats.metrics.bounceRate}%`
-          });
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
   }, []);
 
   return (
@@ -85,7 +54,25 @@ const AdminPage = () => {
 
       <div className="mt-8">
         <UserBehaviorStats
-          metrics={analyticsData}
+          metrics={{
+            pageViews: analyticsData.totalVisits,
+            uniqueVisitors: analyticsData.uniqueVisitors,
+            returningVisitors: Math.floor(analyticsData.uniqueVisitors * 0.4),
+            averageTimeSpent: parseInt(analyticsData.averageSessionDuration),
+            averageSessionDuration: parseInt(analyticsData.averageSessionDuration),
+            bounceRate: parseInt(analyticsData.bounceRate)
+          }}
+          pageMetrics={[]}
+          behavior={{
+            clickEvents: [],
+            scrollDepth: [],
+            deviceStats: {
+              desktop: 0,
+              mobile: 0,
+              tablet: 0
+            },
+            userFlow: []
+          }}
           timeRange="realtime"
           onTimeRangeChange={() => {}}
         />

@@ -55,11 +55,10 @@ export interface TrackingStats {
   behavior: TrackingBehavior;
 }
 
-export interface SupabaseMetrics {
-  total_visits: number;
-  unique_visitors: number;
-  total_clicks: number;
+export interface DatabaseMetrics {
   average_session_duration: number;
   bounce_rate: number;
-  timestamp?: string;
+  total_clicks: number;
+  total_visits: number;
+  unique_visitors: number;
 }

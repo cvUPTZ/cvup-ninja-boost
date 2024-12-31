@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import { v4 as uuidv4 } from 'uuid';
+import { DatabaseMetrics } from './types';
 
 export const storePageView = async (path: string, visitorIp: string, sessionId: string) => {
   try {
@@ -39,17 +39,17 @@ export const storeUserInteraction = async (
   }
 };
 
-export const updateAggregatedMetrics = async (metrics: {
-  totalVisits: number;
-  uniqueVisitors: number;
-  totalClicks: number;
-  averageSessionDuration: number;
-  bounceRate: number;
-}) => {
+export const updateAggregatedMetrics = async (metrics: DatabaseMetrics) => {
   try {
     const { error } = await supabase
       .from('aggregated_metrics')
-      .insert([metrics]);
+      .insert([{
+        average_session_duration: metrics.average_session_duration,
+        bounce_rate: metrics.bounce_rate,
+        total_clicks: metrics.total_clicks,
+        total_visits: metrics.total_visits,
+        unique_visitors: metrics.unique_visitors
+      }]);
     
     if (error) throw error;
     console.log('Aggregated metrics updated successfully');

@@ -18,12 +18,16 @@ import Login from "@/pages/Login";
 const queryClient = new QueryClient();
 
 const AnalyticsContainer = () => {
-  const [analyticsData, setAnalyticsData] = useState(tracking.getCurrentStats());
+  const [analyticsData, setAnalyticsData] = useState<TrackingStats | null>(null);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setAnalyticsData(tracking.getCurrentStats());
-    }, 5000);
+    const fetchData = async () => {
+      const stats = await tracking.getCurrentStats();
+      setAnalyticsData(stats);
+    };
+
+    fetchData();
+    const interval = setInterval(fetchData, 5000);
 
     return () => clearInterval(interval);
   }, []);
