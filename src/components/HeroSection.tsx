@@ -10,45 +10,32 @@ interface OptimizedIconProps {
 }
 
 const OptimizedIcon = React.memo(({ Icon, className }: OptimizedIconProps) => (
-  <Icon className={`w-full h-full ${className}`} />
+  <Icon className={`w-8 h-8 ${className}`} /> // Reduced from default size to w-8 h-8
 ));
 
-// Advanced stat card with interaction and analytics
-interface StatCardProps {
+const StatCard: React.FC<{
   Icon: React.ComponentType<{ className?: string }>;
   number: string;
   label: string;
   analyticsTrackingId?: string;
-}
-
-const StatCard: React.FC<StatCardProps> = React.memo(({ 
-  Icon, 
-  number, 
-  label, 
-  analyticsTrackingId 
-}) => {
+}> = React.memo(({ Icon, number, label, analyticsTrackingId }) => {
   const handleInteraction = () => {
-    // Potential analytics tracking
     if (analyticsTrackingId && typeof window !== 'undefined') {
       // Placeholder for analytics tracking
-      // window.analytics.track(analyticsTrackingId);
     }
   };
 
   return (
     <motion.div 
       className="bg-white/10 p-6 rounded-2xl backdrop-blur-sm overflow-hidden group"
-      whileHover={{ 
-        scale: 1.05,
-        transition: { duration: 0.3 }
-      }}
+      whileHover={{ scale: 1.05, transition: { duration: 0.3 } }}
       whileTap={{ scale: 0.95 }}
       onClick={handleInteraction}
     >
       <div className="relative">
         <OptimizedIcon 
           Icon={Icon} 
-          className="text-cvup-peach mb-2 opacity-70 group-hover:opacity-100 transition-opacity" 
+          className="text-cvup-peach mb-2 opacity-70 group-hover:opacity-100 transition-opacity mx-auto" 
         />
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
@@ -72,7 +59,6 @@ export const HeroSection: React.FC = () => {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    // Client-side only intersection observer
     if (typeof window !== 'undefined' && typeof document !== 'undefined') {
       const observer = new IntersectionObserver(
         ([entry]) => {
@@ -149,9 +135,12 @@ export const HeroSection: React.FC = () => {
             <h1 className="text-5xl md:text-7xl font-bold mb-4 text-cvup-peach text-center">
               CV_UP
             </h1>
-            <h2 className="text-4xl md:text-6xl font-bold mb-6 text-center">
+            <h2 className="text-4xl md:text-6xl font-bold mb-4 text-center">
               <span className="text-cvup-peach">باينة تلقى خدمة</span> CVUP مع
             </h2>
+            <p className="text-2xl md:text-3xl font-bold mb-6 text-cvup-peach">
+              Keep Hustling
+            </p>
             <p className="text-xl md:text-2xl mb-8 text-gray-300 max-w-2xl mx-auto text-center">
               {t('hero.description')}
             </p>
