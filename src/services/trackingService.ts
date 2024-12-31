@@ -1,6 +1,8 @@
 import { DeviceInfo, UserInteraction, TrackingStats, PageMetric } from './tracking/types';
 import { getBrowserInfo, getOSInfo, getDeviceType } from './tracking/deviceUtils';
 import { getUserId } from './tracking/storageUtils';
+import { storePageView, storeUserInteraction, updateAggregatedMetrics } from './tracking/metricsStorage';
+import { v4 as uuidv4 } from 'uuid';
 
 class TrackingService {
   private static instance: TrackingService;
@@ -20,8 +22,10 @@ class TrackingService {
   private userJourneySteps: string[] = ['landing', 'services', 'contact'];
   private visitorIPs: Set<string> = new Set();
   private lastUpdateTime: number = Date.now();
+  private sessionId: string;
 
   private constructor() {
+    this.sessionId = uuidv4();
     ['/', '/services', '/contact'].forEach(page => {
       this.pageViews.set(page, new Set());
     });
@@ -46,6 +50,8 @@ class TrackingService {
         console.log('New visitor IP detected:', ip);
         this.visitorIPs.add(ip);
         const currentPath = window.location.pathname;
+        await storePageView(currentPath, ip, this.sessionId);
+        
         const pageViewers = this.pageViews.get(currentPath) || new Set();
         pageViewers.add(ip);
         this.pageViews.set(currentPath, pageViewers);
@@ -90,6 +96,7 @@ class TrackingService {
     try {
       const ip = await this.getVisitorIP();
       if (ip) {
+        await storePageView(path, ip, this.sessionId);
         const pageViewers = this.pageViews.get(path) || new Set();
         if (!pageViewers.has(ip)) {
           console.log('New page view tracked for IP:', ip);
@@ -115,9 +122,11 @@ class TrackingService {
   }
 
   private trackClicks() {
-    document.addEventListener('click', (e) => {
+    document.addEventListener('click', async (e) => {
       const target = e.target as HTMLElement;
-      if (target.id) {
+      const ip = await this.getVisitorIP();
+      if (target.id && ip) {
+        await storeUserInteraction('click', target.id, ip, this.sessionId);
         const uniqueClickers = this.clickData.get(target.id) || new Set();
         uniqueClickers.add(getUserId());
         this.clickData.set(target.id, uniqueClickers);
@@ -131,7 +140,7 @@ class TrackingService {
 
   private trackScrollDepth() {
     let maxScroll = 0;
-    window.addEventListener('scroll', () => {
+    window.addEventListener('scroll', async () => {
       const scrollPercent = Math.round(
         (window.scrollY + window.innerHeight) / 
         document.documentElement.scrollHeight * 100
@@ -139,12 +148,16 @@ class TrackingService {
       if (scrollPercent > maxScroll) {
         maxScroll = scrollPercent;
         this.scrollDepths.push(scrollPercent);
+        const ip = await this.getVisitorIP();
+        if (ip) {
+          await storeUserInteraction('scroll', null, ip, this.sessionId, { depth: scrollPercent });
+        }
         console.log('New max scroll depth:', scrollPercent);
       }
     });
   }
 
-  public getCurrentStats(): TrackingStats {
+  public async getCurrentStats(): Promise<TrackingStats> {
     // Only update if enough time has passed (5 seconds)
     const now = Date.now();
     if (now - this.lastUpdateTime < 5000) {
@@ -154,7 +167,18 @@ class TrackingService {
 
     this.lastUpdateTime = now;
     console.log('Calculating current stats...');
-    return this.calculateStats();
+    const stats = this.calculateStats();
+    
+    // Store aggregated metrics in Supabase
+    await updateAggregatedMetrics({
+      totalVisits: stats.metrics.pageViews,
+      uniqueVisitors: stats.metrics.uniqueVisitors,
+      totalClicks: stats.metrics.returningVisitors,
+      averageSessionDuration: stats.metrics.averageSessionDuration,
+      bounceRate: parseFloat(stats.metrics.bounceRate)
+    });
+
+    return stats;
   }
 
   private calculateStats(): TrackingStats {

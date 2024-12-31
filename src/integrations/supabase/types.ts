@@ -9,7 +9,90 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      aggregated_metrics: {
+        Row: {
+          average_session_duration: number | null
+          bounce_rate: number | null
+          id: string
+          timestamp: string | null
+          total_clicks: number | null
+          total_visits: number | null
+          unique_visitors: number | null
+        }
+        Insert: {
+          average_session_duration?: number | null
+          bounce_rate?: number | null
+          id?: string
+          timestamp?: string | null
+          total_clicks?: number | null
+          total_visits?: number | null
+          unique_visitors?: number | null
+        }
+        Update: {
+          average_session_duration?: number | null
+          bounce_rate?: number | null
+          id?: string
+          timestamp?: string | null
+          total_clicks?: number | null
+          total_visits?: number | null
+          unique_visitors?: number | null
+        }
+        Relationships: []
+      }
+      page_views: {
+        Row: {
+          id: string
+          path: string
+          session_id: string
+          timestamp: string | null
+          visitor_ip: string
+        }
+        Insert: {
+          id?: string
+          path: string
+          session_id: string
+          timestamp?: string | null
+          visitor_ip: string
+        }
+        Update: {
+          id?: string
+          path?: string
+          session_id?: string
+          timestamp?: string | null
+          visitor_ip?: string
+        }
+        Relationships: []
+      }
+      user_interactions: {
+        Row: {
+          additional_data: Json | null
+          element_id: string | null
+          id: string
+          session_id: string
+          timestamp: string | null
+          type: string
+          visitor_ip: string
+        }
+        Insert: {
+          additional_data?: Json | null
+          element_id?: string | null
+          id?: string
+          session_id: string
+          timestamp?: string | null
+          type: string
+          visitor_ip: string
+        }
+        Update: {
+          additional_data?: Json | null
+          element_id?: string | null
+          id?: string
+          session_id?: string
+          timestamp?: string | null
+          type?: string
+          visitor_ip?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
