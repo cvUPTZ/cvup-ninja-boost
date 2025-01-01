@@ -1,20 +1,19 @@
-// src/context/AuthContext.tsx
 import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
 import { authService } from "@/services/authService";
-import { User } from "@/integrations/supabase/types";
+import { User } from "@/types/supabase/auth.types";
 
 interface AuthContextType {
   isAuthenticated: boolean;
   isAdmin: boolean;
   isTrainer: boolean;
   trainerId: string | null;
-    user: User | null;
+  user: User | null;
   login: (role: string, id?: string) => void;
   logout: () => void;
   loginAdmin: (credentials: { email: string; password: string }) => Promise<void>;
   loginTrainer: (credentials: { email: string; password: string }) => Promise<void>;
   error: string | null;
-    loading: boolean;
+  loading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);

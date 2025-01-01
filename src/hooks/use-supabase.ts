@@ -31,10 +31,11 @@ const useSupabase = <TN extends TableName>(
 
       if (error) throw error;
 
-      setData(result as TablesRow<TN>[]);
+      const typedResult = result as unknown as TablesRow<TN>[];
+      setData(typedResult);
       
       if (options?.onSuccess) {
-        options.onSuccess(result as TablesRow<TN>[]);
+        options.onSuccess(typedResult);
       }
     } catch (error: any) {
       setError(error);
@@ -56,7 +57,7 @@ const useSupabase = <TN extends TableName>(
     try {
       const { data: result, error } = await supabase
         .from(tableName)
-        .insert([newData])
+        .insert([newData as any])
         .select();
 
       if (error) throw error;
@@ -84,7 +85,7 @@ const useSupabase = <TN extends TableName>(
     try {
       const { data: result, error } = await supabase
         .from(tableName)
-        .update(update)
+        .update(update as any)
         .eq('id', id)
         .select();
 
