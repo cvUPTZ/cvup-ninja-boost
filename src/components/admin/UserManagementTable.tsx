@@ -9,29 +9,73 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { User } from "@/types/adminTypes";
 import { Button } from "@/components/ui/button";
+import useSupabase from "@/hooks/use-supabase";
+import { authService } from "@/services/authService";
+import { useToast } from "../ui/use-toast";
 
 interface UserManagementTableProps {
-  users: User[];
-  onBlockUser: (userId: string) => Promise<void>;
-  onUnblockUser: (userId: string) => Promise<void>;
   isLoading: boolean;
 }
 
 export const UserManagementTable = ({
-  users,
-  onBlockUser,
-  onUnblockUser,
   isLoading,
 }: UserManagementTableProps) => {
+  const { data: users, updateData, loading: updating, error: updateError } = useSupabase<"users">(
+    "users",
+    {
+      onError: (error) => {
+          toast({
+             title: 'Error',
+             description: `An error occured: ${error.message}`,
+              variant: 'destructive',
+          })
+      }
+    }
+  );
+  const { toast } = useToast();
+
+  const handleBlockUser = async (userId: string) => {
+    try {
+      await updateData(userId, { status: "blocked" });
+       toast({
+            title: 'Success',
+            description: 'User blocked successfully',
+        });
+    } catch (err: any) {
+           toast({
+             title: 'Error',
+             description: `Failed to block user: ${err.message}`,
+              variant: 'destructive',
+            })
+    }
+  };
+
+    const handleUnblockUser = async (userId: string) => {
+        try {
+           await updateData(userId, { status: "active" });
+            toast({
+             title: 'Success',
+             description: 'User unblocked successfully',
+         });
+        } catch (err: any) {
+            toast({
+             title: 'Error',
+             description: `Failed to unblock user: ${err.message}`,
+              variant: 'destructive',
+           })
+        }
+    }
+
+
   return (
     <Card className="bg-white shadow-md">
       <CardHeader>
         <CardTitle>User Management</CardTitle>
       </CardHeader>
       <CardContent>
-        {isLoading ? (
-          <p>Loading users...</p>
-        ) : users && users.length > 0 ? (
+          {isLoading || updating ? (
+              <p>Loading users...</p>
+          ) : users && users.length > 0 ? (
           <Table>
             <TableHeader>
               <TableRow>
@@ -66,7 +110,8 @@ export const UserManagementTable = ({
                       <Button
                         variant="destructive"
                         size="sm"
-                        onClick={() => onBlockUser(user.id)}
+                        onClick={() => handleBlockUser(user.id)}
+                          disabled={updating}
                       >
                         Block
                       </Button>
@@ -74,7 +119,8 @@ export const UserManagementTable = ({
                       <Button
                         variant="default"
                         size="sm"
-                        onClick={() => onUnblockUser(user.id)}
+                        onClick={() => handleUnblockUser(user.id)}
+                          disabled={updating}
                       >
                         Unblock
                       </Button>

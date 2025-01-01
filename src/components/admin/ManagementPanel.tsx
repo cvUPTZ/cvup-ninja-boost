@@ -6,20 +6,33 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import { Users, Settings, FileText } from "lucide-react";
+import useSupabase from "@/hooks/use-supabase";
 
 export const ManagementPanel = () => {
   const { toast } = useToast();
   const [newUser, setNewUser] = useState({ email: "", role: "user" });
+    const { insertData, loading } = useSupabase<"users">("users", {
+        onSuccess: () => {
+          toast({
+            title: "Utilisateur ajouté",
+            description: `${newUser.email} a été ajouté avec succès.`,
+          });
+           setNewUser({ email: "", role: "user" });
+        },
+        onError: (error) => {
+            toast({
+                title: "Erreur",
+                description: `Une erreur s'est produite lors de l'ajout de l'utilisateur: ${error.message}`,
+                variant: 'destructive',
+            })
+        }
+    });
+
   const [contentId, setContentId] = useState("");
 
-  const handleAddUser = (e: React.FormEvent) => {
+  const handleAddUser = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Implement user addition logic here
-    toast({
-      title: "Utilisateur ajouté",
-      description: `${newUser.email} a été ajouté avec succès.`,
-    });
-    setNewUser({ email: "", role: "user" });
+    await insertData({ email: newUser.email, role: newUser.role, name: newUser.email, status: 'active' });
   };
 
   const handleContentUpdate = (e: React.FormEvent) => {
@@ -68,9 +81,9 @@ export const ManagementPanel = () => {
                   placeholder="utilisateur@example.com"
                 />
               </div>
-              <Button type="submit" className="w-full">
-                Ajouter un utilisateur
-              </Button>
+                <Button type="submit" className="w-full" disabled={loading}>
+                    {loading ? "Adding..." : "Ajouter un utilisateur"}
+                </Button>
             </form>
           </TabsContent>
 

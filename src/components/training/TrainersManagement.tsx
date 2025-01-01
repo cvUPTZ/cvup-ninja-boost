@@ -1,29 +1,18 @@
+// src/components/training/TrainersManagement.tsx
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { DataTable } from "@/components/ui/data-table";
-import { columns } from "./columns/trainersColumns";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { trainersColumns } from "./columns/trainersColumns";
+import { Trainer } from "@/types/adminTypes";
 import { TrainerForm } from "./forms/TrainerForm";
+import useSupabase from "@/hooks/use-supabase";
+
 
 export const TrainersManagement = () => {
   const [showForm, setShowForm] = useState(false);
-
-  const { data: trainers, isLoading } = useQuery({
-    queryKey: ["trainers"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("formateurs")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      return data;
-    },
-  });
-
-  if (isLoading) return <div>Chargement...</div>;
+  const { data: trainers, isLoading } = useSupabase<"formateurs", Trainer>("formateurs");
 
   return (
     <div className="p-6">
@@ -34,7 +23,8 @@ export const TrainersManagement = () => {
         </Button>
       </div>
 
-      <DataTable columns={columns} data={trainers || []} />
+        <DataTable columns={trainersColumns} data={trainers || []} isLoading={isLoading}/>
+
 
       {showForm && <TrainerForm onClose={() => setShowForm(false)} />}
     </div>
