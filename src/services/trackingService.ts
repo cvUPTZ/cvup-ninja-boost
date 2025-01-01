@@ -24,9 +24,11 @@ class TrackingService {
   private visitorIPs: Set<string> = new Set();
   private lastUpdateTime: number = Date.now();
   private sessionId: string;
+  private fallbackVisitorId: string;
 
   private constructor() {
     this.sessionId = uuidv4();
+    this.fallbackVisitorId = uuidv4();
     ['/', '/services', '/contact'].forEach(page => {
       this.pageViews.set(page, new Set());
     });
@@ -46,15 +48,15 @@ class TrackingService {
     console.log('Initializing tracking service...');
     
     try {
-      const ip = await this.getVisitorIP();
-      if (ip) {
-        console.log('New visitor IP detected:', ip);
-        this.visitorIPs.add(ip);
+      const visitorIdentifier = await this.getVisitorIdentifier();
+      if (visitorIdentifier) {
+        console.log('New visitor detected:', visitorIdentifier);
+        this.visitorIPs.add(visitorIdentifier);
         const currentPath = window.location.pathname;
-        await storePageView(currentPath, ip, this.sessionId);
+        await this.trackPageViewSafely(currentPath, visitorIdentifier);
         
         const pageViewers = this.pageViews.get(currentPath) || new Set();
-        pageViewers.add(ip);
+        pageViewers.add(visitorIdentifier);
         this.pageViews.set(currentPath, pageViewers);
         
         console.log('Updated page views for path:', currentPath);
@@ -72,14 +74,23 @@ class TrackingService {
     console.log('Tracking service initialized successfully');
   }
 
-  private async getVisitorIP(): Promise<string | null> {
+  private async getVisitorIdentifier(): Promise<string> {
     try {
       const response = await fetch('https://api.ipify.org?format=json');
       const data = await response.json();
       return data.ip;
     } catch (error) {
-      console.error('Failed to get visitor IP:', error);
-      return null;
+      console.error('Failed to get visitor IP, using fallback ID:', error);
+      return this.fallbackVisitorId;
+    }
+  }
+
+  private async trackPageViewSafely(path: string, visitorIdentifier: string) {
+    try {
+      await storePageView(path, visitorIdentifier, this.sessionId);
+      console.log('Page view stored successfully');
+    } catch (error) {
+      console.error('Error storing page view:', error);
     }
   }
 
@@ -95,13 +106,13 @@ class TrackingService {
     const userId = getUserId();
     
     try {
-      const ip = await this.getVisitorIP();
-      if (ip) {
-        await storePageView(path, ip, this.sessionId);
+      const visitorIdentifier = await this.getVisitorIdentifier();
+      if (visitorIdentifier) {
+        await this.trackPageViewSafely(path, visitorIdentifier);
         const pageViewers = this.pageViews.get(path) || new Set();
-        if (!pageViewers.has(ip)) {
-          console.log('New page view tracked for IP:', ip);
-          pageViewers.add(ip);
+        if (!pageViewers.has(visitorIdentifier)) {
+          console.log('New page view tracked for visitor:', visitorIdentifier);
+          pageViewers.add(visitorIdentifier);
           this.pageViews.set(path, pageViewers);
         }
       }
@@ -125,16 +136,20 @@ class TrackingService {
   private trackClicks() {
     document.addEventListener('click', async (e) => {
       const target = e.target as HTMLElement;
-      const ip = await this.getVisitorIP();
-      if (target.id && ip) {
-        await storeUserInteraction('click', target.id, ip, this.sessionId);
-        const uniqueClickers = this.clickData.get(target.id) || new Set();
-        uniqueClickers.add(getUserId());
-        this.clickData.set(target.id, uniqueClickers);
-        console.log('Click tracked:', {
-          elementId: target.id,
-          uniqueClickers: uniqueClickers.size
-        });
+      try {
+        const visitorIdentifier = await this.getVisitorIdentifier();
+        if (target.id && visitorIdentifier) {
+          await storeUserInteraction('click', target.id, visitorIdentifier, this.sessionId);
+          const uniqueClickers = this.clickData.get(target.id) || new Set();
+          uniqueClickers.add(getUserId());
+          this.clickData.set(target.id, uniqueClickers);
+          console.log('Click tracked:', {
+            elementId: target.id,
+            uniqueClickers: uniqueClickers.size
+          });
+        }
+      } catch (error) {
+        console.error('Error tracking click:', error);
       }
     });
   }
@@ -149,11 +164,15 @@ class TrackingService {
       if (scrollPercent > maxScroll) {
         maxScroll = scrollPercent;
         this.scrollDepths.push(scrollPercent);
-        const ip = await this.getVisitorIP();
-        if (ip) {
-          await storeUserInteraction('scroll', null, ip, this.sessionId, { depth: scrollPercent });
+        try {
+          const visitorIdentifier = await this.getVisitorIdentifier();
+          if (visitorIdentifier) {
+            await storeUserInteraction('scroll', null, visitorIdentifier, this.sessionId, { depth: scrollPercent });
+          }
+          console.log('New max scroll depth:', scrollPercent);
+        } catch (error) {
+          console.error('Error tracking scroll depth:', error);
         }
-        console.log('New max scroll depth:', scrollPercent);
       }
     });
   }

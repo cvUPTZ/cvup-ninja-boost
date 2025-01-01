@@ -1,4 +1,3 @@
-// types/analyticsTypes.ts
 export interface UserMetrics {
   pageViews: number;
   uniqueVisitors: number;
@@ -29,4 +28,21 @@ export interface UserBehavior {
     device: string;
     count: number;
   }[];
+}
+
+export interface TrackingStats {
+  metrics: {
+    totalVisits: number;
+    totalClicks: number;
+    uniqueVisitors: number;
+    averageSessionDuration: string;
+    bounceRate: string;
+  };
+  pageMetrics: {
+    pageViews: any[];
+  };
+  behavior: {
+    clickEvents: any[];
+    interactions: any[];
+  };
 }
