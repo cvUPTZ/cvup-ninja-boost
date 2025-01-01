@@ -1,9 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Database } from "@/integrations/supabase/types";
-
-type Tables = Database['public']['Tables'];
-type TableName = keyof Tables;
+import { TableName, TablesRow, TablesInsert, TablesUpdate } from "@/types/supabase/tables";
 
 interface SupabaseHookOptions<T> {
   initialData?: T[];
@@ -11,8 +8,8 @@ interface SupabaseHookOptions<T> {
   onError?: (error: Error) => void;
 }
 
-const useSupabase = <T extends Tables[TableName]["Row"]>(
-  tableName: TableName,
+const useSupabase = <T extends TablesRow<TN>, TN extends TableName = TableName>(
+  tableName: TN,
   options?: SupabaseHookOptions<T>
 ) => {
   const [data, setData] = useState<T[] | null>(options?.initialData || null);
@@ -45,7 +42,7 @@ const useSupabase = <T extends Tables[TableName]["Row"]>(
     }
   };
 
-  const insertData = async (newData: Partial<T>) => {
+  const insertData = async (newData: TablesInsert<TN>) => {
     setLoading(true);
     setError(null);
     try {
@@ -69,7 +66,7 @@ const useSupabase = <T extends Tables[TableName]["Row"]>(
     }
   };
 
-  const updateData = async (id: string, update: Partial<T>) => {
+  const updateData = async (id: string, update: TablesUpdate<TN>) => {
     setLoading(true);
     setError(null);
     try {

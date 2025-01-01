@@ -32,7 +32,7 @@ export function DataTable<TData, TValue>({
   });
 
   if (isLoading) {
-    return <div className="text-center py-4">Loading...</div>;
+    return <div>Loading...</div>;
   }
 
   return (
