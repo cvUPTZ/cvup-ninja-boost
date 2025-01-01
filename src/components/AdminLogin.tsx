@@ -1,8 +1,9 @@
+// src/components/AdminLogin.tsx
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
+import { toast } from '../components/ui/use-toast';
 interface AdminLoginProps {
   onClose: () => void;
 }
@@ -10,14 +11,12 @@ interface AdminLoginProps {
 export const AdminLogin: React.FC<AdminLoginProps> = ({ onClose }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const { loginAdmin, loginTrainer, error } = useAuth();
+  const { loginAdmin, loginTrainer, error, loading } = useAuth();
   const navigate = useNavigate();
+  const { toast: useToast } = toast()
 
   const handleSubmit = async (e: React.FormEvent, role: 'admin' | 'trainer') => {
-    e.preventDefault();
-    setIsLoading(true);
-
+      e.preventDefault();
     try {
       if (role === 'admin') {
         await loginAdmin({ email, password });
@@ -28,10 +27,12 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onClose }) => {
         onClose();
         navigate('/training');
       }
-    } catch (err) {
-      // Error is handled in AuthContext
-    } finally {
-      setIsLoading(false);
+    } catch (err: any) {
+       useToast({
+            title: 'Error',
+            description: `Failed to login: ${err.message}`,
+           variant: 'destructive',
+        })
     }
   };
 
@@ -40,26 +41,26 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onClose }) => {
       <div className="bg-white rounded-lg p-8 max-w-md w-full mx-4">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-cvup-purple">Login</h2>
-          <button 
+          <button
             onClick={onClose}
             className="text-gray-500 hover:text-gray-700"
           >
             ✕
           </button>
         </div>
-        
+
         {error && (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
             {error}
           </div>
         )}
-        
+
         <Tabs defaultValue="admin" className="w-full">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="admin">Admin</TabsTrigger>
             <TabsTrigger value="trainer">Trainer</TabsTrigger>
           </TabsList>
-          
+
           <TabsContent value="admin">
             <form onSubmit={(e) => handleSubmit(e, 'admin')} className="space-y-4">
               <div>
@@ -75,7 +76,7 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onClose }) => {
                   required
                 />
               </div>
-              
+
               <div>
                 <label className="block text-gray-700 text-sm font-bold mb-2">
                   Password
@@ -89,17 +90,17 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onClose }) => {
                   required
                 />
               </div>
-              
+
               <button
                 type="submit"
-                disabled={isLoading}
+                disabled={loading}
                 className="w-full bg-cvup-purple text-white font-bold py-2 px-4 rounded-lg hover:bg-opacity-90 transition-colors disabled:opacity-50"
               >
-                {isLoading ? 'Logging in...' : 'Login as Admin'}
+                {loading ? 'Logging in...' : 'Login as Admin'}
               </button>
             </form>
           </TabsContent>
-          
+
           <TabsContent value="trainer">
             <form onSubmit={(e) => handleSubmit(e, 'trainer')} className="space-y-4">
               <div>
@@ -115,7 +116,7 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onClose }) => {
                   required
                 />
               </div>
-              
+
               <div>
                 <label className="block text-gray-700 text-sm font-bold mb-2">
                   Password
@@ -129,13 +130,13 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onClose }) => {
                   required
                 />
               </div>
-              
+
               <button
                 type="submit"
-                disabled={isLoading}
+                disabled={loading}
                 className="w-full bg-cvup-purple text-white font-bold py-2 px-4 rounded-lg hover:bg-opacity-90 transition-colors disabled:opacity-50"
               >
-                {isLoading ? 'Logging in...' : 'Login as Trainer'}
+                {loading ? 'Logging in...' : 'Login as Trainer'}
               </button>
             </form>
           </TabsContent>

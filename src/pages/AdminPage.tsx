@@ -1,9 +1,11 @@
+// src/pages/AdminPage.tsx
 import { StatisticsCards } from "@/components/admin/StatisticsCards";
 import { PolicySection } from "@/components/admin/PolicySection";
 import { ManagementPanel } from "@/components/admin/ManagementPanel";
 import { tracking } from "@/services/trackingService";
 import { useState, useEffect } from "react";
 import { UserBehaviorStats } from "@/components/analytics/UserBehaviorStats";
+import Layout from "@/components/Layout";
 
 const AdminPage = () => {
   const [analyticsData, setAnalyticsData] = useState(() => ({
@@ -42,11 +44,7 @@ const AdminPage = () => {
   }, []);
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold text-cvup-purple mb-8">
-        Tableau de Bord Administrateur
-      </h1>
-      
+    <Layout title="Tableau de Bord Administrateur">
       <StatisticsCards
         analyticsData={analyticsData}
         serviceStats={serviceStats}
@@ -85,7 +83,7 @@ const AdminPage = () => {
       <div className="mt-12">
         <PolicySection />
       </div>
-    </div>
+    </Layout>
   );
 };
 

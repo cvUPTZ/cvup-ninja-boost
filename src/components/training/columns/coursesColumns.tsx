@@ -1,9 +1,9 @@
+// src/components/training/columns/coursesColumns.tsx
 import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import { Edit, Trash } from "lucide-react";
 import { Course } from '@/types/adminTypes';
-import useSupabase from "@/hooks/use-supabase";
-import { useToast } from "@/components/ui/use-toast";
+import useDelete from "@/hooks/use-delete";
 
 export const coursesColumns: ColumnDef<Course>[] = [
   {
@@ -22,25 +22,7 @@ export const coursesColumns: ColumnDef<Course>[] = [
         id: "actions",
         cell: ({ row }) => {
             const course = row.original;
-            const {deleteData, loading} = useSupabase<"formations">("formations",{
-                onSuccess: () => {
-                    toast({
-                        title: 'Success',
-                        description: 'Course deleted successfully',
-                    });
-                },
-                onError: (error) => {
-                    toast({
-                        title: 'Error',
-                        description: `Failed to delete course: ${error.message}`,
-                        variant: 'destructive',
-                    })
-                }
-            });
-             const { toast } = useToast();
-             const handleDelete = async () => {
-                await deleteData(course.id);
-            };
+           const {deleteData, loading} = useDelete("formations");
 
 
             return (
@@ -48,7 +30,7 @@ export const coursesColumns: ColumnDef<Course>[] = [
                     <Button variant="outline" size="icon" disabled={loading}>
                         <Edit className="h-4 w-4" />
                     </Button>
-                    <Button variant="destructive" size="icon" onClick={handleDelete}  disabled={loading}>
+                    <Button variant="destructive" size="icon" onClick={() => deleteData(course.id)}  disabled={loading}>
                         <Trash className="h-4 w-4" />
                     </Button>
                 </div>

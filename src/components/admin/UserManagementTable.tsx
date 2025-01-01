@@ -1,3 +1,4 @@
+// src/components/admin/UserManagementTable.tsx
 import {
   Table,
   TableBody,
@@ -9,9 +10,9 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { User } from "@/types/adminTypes";
 import { Button } from "@/components/ui/button";
-import useSupabase from "@/hooks/use-supabase";
-import { authService } from "@/services/authService";
 import { useToast } from "../ui/use-toast";
+import { useState, useEffect } from "react";
+import { dataService } from "@/services/dataService";
 
 interface UserManagementTableProps {
   isLoading: boolean;
@@ -20,49 +21,70 @@ interface UserManagementTableProps {
 export const UserManagementTable = ({
   isLoading,
 }: UserManagementTableProps) => {
-  const { data: users, updateData, loading: updating, error: updateError } = useSupabase<"users">(
-    "users",
-    {
-      onError: (error) => {
-          toast({
-             title: 'Error',
-             description: `An error occured: ${error.message}`,
-              variant: 'destructive',
-          })
-      }
+    const [users, setUsers] = useState<User[] | null>(null)
+    const [updating, setUpdating] = useState(false);
+    const [error, setError] = useState<Error | null>(null);
+    const { toast } = useToast();
+
+
+    const fetchData = async () => {
+        try {
+            const users = await dataService.fetchData<User>("users");
+            setUsers(users);
+        } catch (err: any) {
+          setError(err)
+            toast({
+                title: 'Error',
+                description: `An error occured: ${err.message}`,
+                variant: 'destructive',
+            })
+        }
     }
-  );
-  const { toast } = useToast();
+
+
+  useEffect(() => {
+     fetchData();
+     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
 
   const handleBlockUser = async (userId: string) => {
+      setUpdating(true)
     try {
-      await updateData(userId, { status: "blocked" });
+      await dataService.updateData("users", userId, { status: "blocked" });
        toast({
             title: 'Success',
             description: 'User blocked successfully',
         });
+      await fetchData();
     } catch (err: any) {
            toast({
              title: 'Error',
              description: `Failed to block user: ${err.message}`,
               variant: 'destructive',
             })
+    } finally {
+        setUpdating(false);
     }
   };
 
     const handleUnblockUser = async (userId: string) => {
+        setUpdating(true)
         try {
-           await updateData(userId, { status: "active" });
+           await dataService.updateData("users", userId, { status: "active" });
             toast({
              title: 'Success',
              description: 'User unblocked successfully',
          });
+            await fetchData();
         } catch (err: any) {
             toast({
              title: 'Error',
              description: `Failed to unblock user: ${err.message}`,
               variant: 'destructive',
            })
+        }  finally {
+           setUpdating(false);
         }
     }
 
