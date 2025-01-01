@@ -1,14 +1,17 @@
 import { supabase } from "@/integrations/supabase/client";
 import { getDeviceType } from "./tracking/deviceUtils";
-import { getStoredMetrics, updateStoredMetrics } from "./tracking/metricsStorage";
 import { TrackingMetrics, PageMetric, TrackingBehavior } from "./tracking/types";
 
 class TrackingService {
   private visitorId: string | null = null;
   private sessionId: string | null = null;
+  private initialized: boolean = false;
 
-  constructor() {
-    this.initializeSession();
+  async init() {
+    if (this.initialized) return;
+    
+    await this.initializeSession();
+    this.initialized = true;
   }
 
   private async initializeSession() {
