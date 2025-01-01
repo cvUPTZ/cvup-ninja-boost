@@ -16,6 +16,12 @@ import TrainingManagement from "@/pages/TrainingManagement";
 
 const queryClient = new QueryClient();
 
+interface TrackingStats {
+  metrics: any;
+  pageMetrics: any;
+  behavior: any;
+}
+
 const AnalyticsContainer = () => {
   const [analyticsData, setAnalyticsData] = useState<TrackingStats | null>(null);
 
@@ -31,7 +37,6 @@ const AnalyticsContainer = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // Ensure we have data before rendering
   if (!analyticsData) {
     return <div>Loading analytics...</div>;
   }
