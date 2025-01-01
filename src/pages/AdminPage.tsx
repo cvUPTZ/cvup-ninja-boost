@@ -3,7 +3,6 @@ import { PolicySection } from "@/components/admin/PolicySection";
 import { ManagementPanel } from "@/components/admin/ManagementPanel";
 import { tracking } from "@/services/trackingService";
 import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { UserBehaviorStats } from "@/components/analytics/UserBehaviorStats";
 
 const AdminPage = () => {
@@ -26,13 +25,14 @@ const AdminPage = () => {
   useEffect(() => {
     const fetchMetrics = async () => {
       const stats = await tracking.getCurrentStats();
+      const clickEvents = stats.behavior?.clickEvents || [];
       setAnalyticsData({
-        totalVisits: stats.metrics.pageViews,
-        totalClicks: stats.behavior.clickEvents.reduce((sum, event) => sum + event.clicks, 0),
-        totalInteractions: stats.behavior.clickEvents.length,
-        uniqueVisitors: stats.metrics.uniqueVisitors,
-        averageSessionDuration: `${Math.round(stats.metrics.averageSessionDuration)}s`,
-        bounceRate: `${Math.round(stats.metrics.bounceRate)}%`
+        totalVisits: stats.metrics.pageViews || 0,
+        totalClicks: clickEvents.reduce((sum, event) => sum + (event.clicks || 0), 0),
+        totalInteractions: clickEvents.length,
+        uniqueVisitors: stats.metrics.uniqueVisitors || 0,
+        averageSessionDuration: `${Math.round(stats.metrics.averageSessionDuration || 0)}s`,
+        bounceRate: `${Math.round(stats.metrics.bounceRate || 0)}%`
       });
     };
 

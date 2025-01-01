@@ -1,189 +1,152 @@
-import { v4 as uuidv4 } from 'uuid';
-import { supabase } from '@/integrations/supabase/client';
-import { getDeviceType } from './tracking/deviceUtils';
-import { getStoredMetrics, updateStoredMetrics } from './tracking/metricsStorage';
-import { TrackingStats, PageMetrics, UserBehaviorMetrics } from './tracking/types';
+import { supabase } from "@/integrations/supabase/client";
+import { getDeviceType } from "./tracking/deviceUtils";
+import { getStoredMetrics, updateStoredMetrics } from "./tracking/metricsStorage";
+import { TrackingMetrics, PageMetric, TrackingBehavior } from "./tracking/types";
 
 class TrackingService {
-  private sessionId: string;
-  private initialized: boolean = false;
+  private visitorId: string | null = null;
+  private sessionId: string | null = null;
 
   constructor() {
-    this.sessionId = uuidv4();
+    this.initializeSession();
   }
 
-  async init() {
-    if (this.initialized) return;
+  private async initializeSession() {
+    this.sessionId = localStorage.getItem('sessionId') || crypto.randomUUID();
+    localStorage.setItem('sessionId', this.sessionId);
     
-    try {
-      console.info('Tracking service initialized successfully');
-      const deviceType = getDeviceType();
-      console.info('Device type tracked:', deviceType);
-      
-      await this.trackPageView(window.location.pathname);
-      this.initialized = true;
-    } catch (error) {
-      console.error('Failed to initialize tracking service:', error);
+    const storedVisitorId = localStorage.getItem('visitorId');
+    if (storedVisitorId) {
+      this.visitorId = storedVisitorId;
+    } else {
+      this.visitorId = await this.getVisitorIdentifier();
+      if (this.visitorId) {
+        localStorage.setItem('visitorId', this.visitorId);
+      }
     }
   }
 
   private async getVisitorIdentifier(): Promise<string> {
     try {
-      const proxyUrl = 'https://api.allorigins.win/raw?url=';
-      const targetUrl = encodeURIComponent('https://api.ipify.org?format=json');
-      const response = await fetch(`${proxyUrl}${targetUrl}`);
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch IP');
-      }
-      
+      const response = await fetch('https://api.allorigins.win/raw?url=' + encodeURIComponent('https://api.ipify.org?format=json'));
       const data = await response.json();
-      console.info('Successfully retrieved visitor IP:', data.ip);
-      return data.ip;
+      return data.ip || crypto.randomUUID();
     } catch (error) {
-      console.warn('Failed to get visitor IP, using fallback UUID:', error);
-      return uuidv4();
+      console.error('Error getting IP:', error);
+      return crypto.randomUUID();
     }
   }
 
   async trackPageView(path: string) {
-    try {
-      const visitorId = await this.getVisitorIdentifier();
-      const normalizedPath = path.replace(/:\/$/, '/');
+    if (!this.visitorId || !this.sessionId) return;
 
+    try {
       await supabase.from('page_views').insert({
-        path: normalizedPath,
-        visitor_ip: visitorId,
+        path,
+        visitor_ip: this.visitorId,
         session_id: this.sessionId
       });
-
-      console.info('Page view stored successfully');
-
-      const { data: pageViews } = await supabase
-        .from('page_views')
-        .select('*')
-        .eq('path', normalizedPath);
-
-      const uniqueVisitors = new Set(pageViews?.map(view => view.visitor_ip)).size;
-      const totalViews = pageViews?.length || 0;
-
-      console.info('Page view tracked:', {
-        path: normalizedPath,
-        totalViews,
-        uniqueVisitors
-      });
-
-      console.info('Page view stored successfully');
     } catch (error) {
-      console.error('Failed to track page view:', error);
+      console.error('Error tracking page view:', error);
     }
   }
 
   async trackInteraction(type: string, elementId?: string, additionalData: any = {}) {
-    try {
-      const visitorId = await this.getVisitorIdentifier();
+    if (!this.visitorId || !this.sessionId) return;
 
+    try {
       await supabase.from('user_interactions').insert({
         type,
         element_id: elementId,
-        visitor_ip: visitorId,
+        visitor_ip: this.visitorId,
         session_id: this.sessionId,
         additional_data: additionalData
       });
-
-      console.info('User interaction stored successfully');
-
-      if (type === 'click' && elementId) {
-        const { data: clicks } = await supabase
-          .from('user_interactions')
-          .select('*')
-          .eq('type', 'click')
-          .eq('element_id', elementId);
-
-        const uniqueClickers = new Set(clicks?.map(click => click.visitor_ip)).size;
-
-        console.info('Click tracked:', {
-          elementId,
-          uniqueClickers
-        });
-      }
     } catch (error) {
-      console.error('Failed to track interaction:', error);
+      console.error('Error tracking interaction:', error);
     }
   }
 
-  async getCurrentStats(): Promise<TrackingStats> {
+  async getCurrentStats(): Promise<{
+    metrics: TrackingMetrics;
+    pageMetrics: PageMetric[];
+    behavior: TrackingBehavior;
+  }> {
     try {
-      const { data: pageViews } = await supabase
-        .from('page_views')
+      const { data: metricsData } = await supabase
+        .from('aggregated_metrics')
         .select('*')
         .order('timestamp', { ascending: false })
-        .limit(100);
+        .limit(1)
+        .single();
 
-      const { data: interactions } = await supabase
-        .from('user_interactions')
-        .select('*')
-        .order('timestamp', { ascending: false })
-        .limit(100);
-
-      const uniqueVisitors = new Set(pageViews?.map(view => view.visitor_ip)).size;
-      const totalPageViews = pageViews?.length || 0;
-      const totalInteractions = interactions?.length || 0;
-
-      const pageMetrics: { [key: string]: PageMetrics } = {};
-      pageViews?.forEach(view => {
-        if (!pageMetrics[view.path]) {
-          pageMetrics[view.path] = {
-            views: 0,
-            uniqueVisitors: new Set()
-          };
-        }
-        pageMetrics[view.path].views++;
-        pageMetrics[view.path].uniqueVisitors.add(view.visitor_ip);
-      });
-
-      const behavior: { [key: string]: UserBehaviorMetrics } = {};
-      interactions?.forEach(interaction => {
-        if (interaction.element_id) {
-          if (!behavior[interaction.element_id]) {
-            behavior[interaction.element_id] = {
-              clicks: 0,
-              uniqueUsers: new Set()
-            };
+      if (metricsData) {
+        return {
+          metrics: {
+            pageViews: metricsData.total_visits || 0,
+            uniqueVisitors: metricsData.unique_visitors || 0,
+            returningVisitors: Math.floor((metricsData.unique_visitors || 0) * 0.4),
+            averageTimeSpent: metricsData.average_session_duration || 0,
+            averageSessionDuration: metricsData.average_session_duration || 0,
+            bounceRate: metricsData.bounce_rate || 0
+          },
+          pageMetrics: [],
+          behavior: {
+            clickEvents: [],
+            scrollDepth: [],
+            deviceStats: {
+              desktop: 0,
+              mobile: 0,
+              tablet: 0
+            },
+            userFlow: []
           }
-          behavior[interaction.element_id].clicks++;
-          behavior[interaction.element_id].uniqueUsers.add(interaction.visitor_ip);
-        }
-      });
-
-      // Convert Sets to numbers for the final output
-      Object.keys(pageMetrics).forEach(path => {
-        pageMetrics[path].uniqueVisitors = pageMetrics[path].uniqueVisitors.size;
-      });
-
-      Object.keys(behavior).forEach(elementId => {
-        behavior[elementId].uniqueUsers = behavior[elementId].uniqueUsers.size;
-      });
+        };
+      }
 
       return {
         metrics: {
-          uniqueVisitors,
-          totalPageViews,
-          totalInteractions
+          pageViews: 0,
+          uniqueVisitors: 0,
+          returningVisitors: 0,
+          averageTimeSpent: 0,
+          averageSessionDuration: 0,
+          bounceRate: 0
         },
-        pageMetrics,
-        behavior
+        pageMetrics: [],
+        behavior: {
+          clickEvents: [],
+          scrollDepth: [],
+          deviceStats: {
+            desktop: 0,
+            mobile: 0,
+            tablet: 0
+          },
+          userFlow: []
+        }
       };
     } catch (error) {
-      console.error('Failed to get current stats:', error);
+      console.error('Error getting current stats:', error);
       return {
         metrics: {
+          pageViews: 0,
           uniqueVisitors: 0,
-          totalPageViews: 0,
-          totalInteractions: 0
+          returningVisitors: 0,
+          averageTimeSpent: 0,
+          averageSessionDuration: 0,
+          bounceRate: 0
         },
-        pageMetrics: {},
-        behavior: {}
+        pageMetrics: [],
+        behavior: {
+          clickEvents: [],
+          scrollDepth: [],
+          deviceStats: {
+            desktop: 0,
+            mobile: 0,
+            tablet: 0
+          },
+          userFlow: []
+        }
       };
     }
   }

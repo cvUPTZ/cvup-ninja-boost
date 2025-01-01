@@ -77,7 +77,7 @@ export type Database = {
           email: string
           full_name: string
           id?: string
-          phone?: string | null
+          phone?: string
           speciality?: string | null
         }
         Update: {
@@ -255,6 +255,36 @@ export type Database = {
         }
         Relationships: []
       }
+      users: {
+        Row: {
+          id: string
+          email: string
+          name: string | null
+          role: string | null
+          status: string | null
+          last_login: string | null
+          created_at: string | null
+        }
+        Insert: {
+          id?: string
+          email: string
+          name?: string | null
+          role?: string | null
+          status?: string | null
+          last_login?: string | null
+          created_at?: string | null
+        }
+        Update: {
+          id?: string
+          email?: string
+          name?: string | null
+          role?: string | null
+          status?: string | null
+          last_login?: string | null
+          created_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -280,7 +310,7 @@ export type Tables<
   TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
     ? keyof (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
         Database[PublicTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+    : never,
 > = PublicTableNameOrOptions extends { schema: keyof Database }
   ? (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
       Database[PublicTableNameOrOptions["schema"]]["Views"])[TableName] extends {
@@ -334,10 +364,10 @@ export type TablesUpdate<
     : never
   : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
     ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
-        Update: infer U
-      }
-      ? U
-      : never
+      Update: infer U
+    }
+    ? U
+    : never
     : never
 
 export type Enums<

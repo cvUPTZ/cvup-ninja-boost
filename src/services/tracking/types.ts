@@ -1,16 +1,3 @@
-export interface DeviceInfo {
-  type: 'mobile' | 'tablet' | 'desktop';
-  browser: string;
-  os: string;
-}
-
-export interface UserInteraction {
-  timestamp: number;
-  type: string;
-  element: string;
-  duration?: number;
-}
-
 export interface TrackingMetrics {
   pageViews: number;
   uniqueVisitors: number;
@@ -35,7 +22,7 @@ export interface TrackingBehavior {
     uniqueClicks: number;
   }>;
   scrollDepth: Array<{
-    percentage: string;
+    percentage: number;
     count: number;
   }>;
   deviceStats: {
@@ -47,18 +34,4 @@ export interface TrackingBehavior {
     step: string;
     users: number;
   }>;
-}
-
-export interface TrackingStats {
-  metrics: TrackingMetrics;
-  pageMetrics: PageMetric[];
-  behavior: TrackingBehavior;
-}
-
-export interface DatabaseMetrics {
-  average_session_duration: number;
-  bounce_rate: number;
-  total_clicks: number;
-  total_visits: number;
-  unique_visitors: number;
 }
