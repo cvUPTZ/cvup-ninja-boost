@@ -68,34 +68,34 @@ const App = () => {
           <Sonner />
           <BrowserRouter>
             <Routes>
-                <Route path="/register" element={<Registration />} />
+              <Route path="/register" element={<Registration />} />
               <Route path="/" element={<Index />} />
               <Route path="/login" element={<Login />} />
-              <Route
-                path="/admin"
-                element={
-                  <ProtectedRoute>
-                    <AdminPage />
-                    <AnalyticsContainer />
-                  </ProtectedRoute>
-                }
-              />
                 <Route
-                  path="/admin/stats"
-                  element={
-                    <ProtectedRoute>
-                      <AdminStats />
-                    </ProtectedRoute>
-                  }
+                    path="/admin"
+                    element={
+                        <ProtectedRoute>
+                            <AdminPage />
+                            <AnalyticsContainer />
+                        </ProtectedRoute>
+                    }
                 />
-              <Route
-                path="/training"
-                element={
-                  <ProtectedRoute>
-                    <TrainingManagement />
-                  </ProtectedRoute>
-                }
-              />
+                <Route
+                    path="/admin/stats"
+                    element={
+                        <ProtectedRoute>
+                            <AdminStats />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/training/*"
+                    element={
+                        <ProtectedRoute>
+                            <TrainingManagement />
+                        </ProtectedRoute>
+                    }
+                />
             </Routes>
           </BrowserRouter>
         </TooltipProvider>

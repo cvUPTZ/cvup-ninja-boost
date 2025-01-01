@@ -9,7 +9,7 @@ interface Props {
 }
 
 const ProtectedRoute: React.FC<Props> = ({ children }) => {
-  const { isAuthenticated, isAdmin, isTrainer, trainerId } = useAuth();
+  const { isAuthenticated, isAdmin, isTrainer } = useAuth();
   const location = useLocation();
 
   // If not authenticated, redirect to login
@@ -19,11 +19,11 @@ const ProtectedRoute: React.FC<Props> = ({ children }) => {
 
   // Check route access based on role
   if (location.pathname === "/admin" && !isAdmin) {
-     return <div>You do not have permission to access this page.</div>;
+     return  <Navigate to="/" replace />;
   }
 
 
-    if (location.pathname === "/training") {
+    if (location.pathname.startsWith("/training")) {
          if (isAdmin) return <>{children}</>
 
        if (isTrainer) {
@@ -34,7 +34,7 @@ const ProtectedRoute: React.FC<Props> = ({ children }) => {
             return <>{children}</>
            }
        }
-        return <div>You do not have permission to access this page.</div>;
+        return  <Navigate to="/" replace />;
 
     }
 

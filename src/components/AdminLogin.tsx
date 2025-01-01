@@ -12,7 +12,6 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onClose }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const { loginAdmin, loginTrainer, error, loading } = useAuth();
-  const navigate = useNavigate();
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent, role: 'admin' | 'trainer') => {
@@ -21,11 +20,9 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onClose }) => {
       if (role === 'admin') {
         await loginAdmin({ email, password });
         onClose();
-        navigate('/admin');
       } else {
         await loginTrainer({ email, password });
         onClose();
-        navigate('/training');
       }
     } catch (err: any) {
       toast({
