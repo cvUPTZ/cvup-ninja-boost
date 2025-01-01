@@ -30,8 +30,8 @@ export const adminService = {
           totalVisits: metrics?.total_visits || 0,
           totalClicks: metrics?.total_clicks || 0,
           uniqueVisitors: metrics?.unique_visitors || 0,
-          averageSessionDuration: metrics?.average_session_duration || 0,
-          bounceRate: metrics?.bounce_rate || 0,
+          averageSessionDuration: String(metrics?.average_session_duration || 0),
+          bounceRate: String(metrics?.bounce_rate || 0),
         },
         pageMetrics: {
           pageViews: pageViews || [],
