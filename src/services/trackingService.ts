@@ -76,12 +76,29 @@ class TrackingService {
 
   private async getVisitorIdentifier(): Promise<string> {
     try {
-      const response = await fetch('https://api.ipify.org?format=json');
+      // Use a CORS proxy to make the request
+      const proxyUrl = 'https://api.allorigins.win/raw?url=';
+      const targetUrl = encodeURIComponent('https://api.ipify.org?format=json');
+      const response = await fetch(`${proxyUrl}${targetUrl}`);
+      
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      
       const data = await response.json();
+      console.log('Successfully retrieved visitor IP:', data.ip);
       return data.ip;
     } catch (error) {
       console.error('Failed to get visitor IP, using fallback ID:', error);
-      return this.fallbackVisitorId;
+      // If we already have a fallback ID stored in localStorage, use it
+      const storedFallbackId = localStorage.getItem('visitorFallbackId');
+      if (storedFallbackId) {
+        return storedFallbackId;
+      }
+      // Otherwise generate a new one and store it
+      const newFallbackId = this.fallbackVisitorId;
+      localStorage.setItem('visitorFallbackId', newFallbackId);
+      return newFallbackId;
     }
   }
 
