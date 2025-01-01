@@ -1,56 +1,49 @@
-import { tracking } from './trackingService';
-import { AnalyticsData, User, UserStats } from '@/types/adminTypes';
+import { supabase } from "@/integrations/supabase/client";
+import { TrackingStats } from "@/types/analyticsTypes";
 
-export const fetchUserStats = async (): Promise<UserStats> => {
-  // Simulated user stats for demo
-  return {
-    totalUsers: 150,
-    activeUsers: 120,
-    blockedUsers: 30,
-  };
-};
+export const adminService = {
+  async getStats(): Promise<TrackingStats> {
+    try {
+      const { data: metrics, error: metricsError } = await supabase
+        .from("aggregated_metrics")
+        .select("*")
+        .order("timestamp", { ascending: false })
+        .limit(1)
+        .single();
 
-export const fetchAllUsers = async (): Promise<User[]> => {
-  // Simulated users data for demo
-  return [
-    {
-      id: '1',
-      name: 'John Doe',
-      email: 'john@example.com',
-      role: 'user',
-      status: 'active',
-      lastLogin: '2024-03-20',
-    },
-    {
-      id: '2',
-      name: 'Jane Smith',
-      email: 'jane@example.com',
-      role: 'user',
-      status: 'active',
-      lastLogin: '2024-03-19',
-    },
-  ];
-};
+      if (metricsError) throw metricsError;
 
-export const fetchAnalytics = async (): Promise<AnalyticsData> => {
-  const stats = tracking.getCurrentStats();
-  
-  return {
-    totalVisits: stats.metrics.pageViews,
-    totalClicks: stats.behavior.clickEvents.reduce((acc, event) => acc + event.clicks, 0),
-    totalInteractions: stats.behavior.clickEvents.length,
-    uniqueVisitors: stats.metrics.uniqueVisitors,
-    averageSessionDuration: `${stats.metrics.averageTimeSpent} min`,
-    bounceRate: `${stats.metrics.bounceRate}%`,
-  };
-};
+      const { data: pageViews, error: pageViewsError } = await supabase
+        .from("page_views")
+        .select("*");
 
-export const blockUser = async (userId: string): Promise<void> => {
-  // Simulated API call
-  console.log(`Blocking user ${userId}`);
-};
+      if (pageViewsError) throw pageViewsError;
 
-export const unblockUser = async (userId: string): Promise<void> => {
-  // Simulated API call
-  console.log(`Unblocking user ${userId}`);
+      const { data: interactions, error: interactionsError } = await supabase
+        .from("user_interactions")
+        .select("*");
+
+      if (interactionsError) throw interactionsError;
+
+      return {
+        metrics: {
+          totalVisits: metrics?.total_visits || 0,
+          totalClicks: metrics?.total_clicks || 0,
+          uniqueVisitors: metrics?.unique_visitors || 0,
+          averageSessionDuration: metrics?.average_session_duration || 0,
+          bounceRate: metrics?.bounce_rate || 0,
+        },
+        pageMetrics: {
+          pageViews: pageViews || [],
+        },
+        behavior: {
+          clickEvents: interactions?.filter((i) => i.type === "click") || [],
+          interactions: interactions || [],
+        },
+      };
+    } catch (error) {
+      console.error("Error fetching admin stats:", error);
+      throw error;
+    }
+  },
 };
