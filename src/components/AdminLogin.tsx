@@ -1,9 +1,9 @@
-// src/components/AdminLogin.tsx
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { toast } from '../components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
+
 interface AdminLoginProps {
   onClose: () => void;
 }
@@ -13,10 +13,10 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onClose }) => {
   const [password, setPassword] = useState('');
   const { loginAdmin, loginTrainer, error, loading } = useAuth();
   const navigate = useNavigate();
-  const { toast: useToast } = toast()
+  const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent, role: 'admin' | 'trainer') => {
-      e.preventDefault();
+    e.preventDefault();
     try {
       if (role === 'admin') {
         await loginAdmin({ email, password });
@@ -28,11 +28,11 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onClose }) => {
         navigate('/training');
       }
     } catch (err: any) {
-       useToast({
-            title: 'Error',
-            description: `Failed to login: ${err.message}`,
-           variant: 'destructive',
-        })
+      toast({
+        title: 'Error',
+        description: `Failed to login: ${err.message}`,
+        variant: 'destructive',
+      });
     }
   };
 

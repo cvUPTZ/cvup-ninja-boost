@@ -11,7 +11,7 @@ interface SupabaseHookOptions<T> {
   onError?: (error: Error) => void;
 }
 
-const useSupabase = <T>(
+const useSupabase = <T extends Tables[TableName]['Row']>(
   tableName: TableName,
   options?: SupabaseHookOptions<T>
 ) => {
@@ -51,7 +51,8 @@ const useSupabase = <T>(
     try {
       const { data, error } = await supabase
         .from(tableName)
-        .insert([newData as any]);
+        .insert([newData])
+        .select();
 
       if (error) {
         throw error;
@@ -74,8 +75,9 @@ const useSupabase = <T>(
     try {
       const { data, error } = await supabase
         .from(tableName)
-        .update(update as any)
-        .eq('id', id);
+        .update(update)
+        .eq('id', id)
+        .select();
 
       if (error) {
         throw error;
