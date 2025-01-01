@@ -11,7 +11,7 @@ interface SupabaseHookOptions<T> {
   onError?: (error: Error) => void;
 }
 
-const useSupabase = <T extends Tables[TableName]['Row']>(
+const useSupabase = <T extends Tables[TableName]["Row"]>(
   tableName: TableName,
   options?: SupabaseHookOptions<T>
 ) => {

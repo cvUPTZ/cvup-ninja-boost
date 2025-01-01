@@ -2,12 +2,14 @@
 
 export interface User {
   id: string;
-  name: string;
+  name: string | null;
   email: string;
   role: 'user' | 'admin' | 'trainer';
   status: 'active' | 'blocked';
   lastLogin?: string;
+  created_at?: string;
 }
+
 export interface Course {
   id: string;
   title: string;
