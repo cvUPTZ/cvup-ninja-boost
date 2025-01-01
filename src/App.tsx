@@ -1,3 +1,4 @@
+// src/App.tsx
 import { useEffect, useState } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -13,6 +14,8 @@ import Index from "./pages/Index";
 import './i18n';
 import Login from "@/pages/Login";
 import TrainingManagement from "@/pages/TrainingManagement";
+import Registration from "@/pages/Registration";
+import AdminStats from "@/pages/AdminStats";
 
 const queryClient = new QueryClient();
 
@@ -65,6 +68,7 @@ const App = () => {
           <Sonner />
           <BrowserRouter>
             <Routes>
+                <Route path="/register" element={<Registration />} />
               <Route path="/" element={<Index />} />
               <Route path="/login" element={<Login />} />
               <Route
@@ -76,6 +80,14 @@ const App = () => {
                   </ProtectedRoute>
                 }
               />
+                <Route
+                  path="/admin/stats"
+                  element={
+                    <ProtectedRoute>
+                      <AdminStats />
+                    </ProtectedRoute>
+                  }
+                />
               <Route
                 path="/training"
                 element={
