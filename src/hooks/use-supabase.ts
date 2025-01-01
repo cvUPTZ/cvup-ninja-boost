@@ -24,18 +24,18 @@ const useSupabase = <TN extends TableName>(
     setLoading(true);
     setError(null);
     try {
-      const { data, error } = await supabase
+      const { data: result, error } = await supabase
         .from(tableName)
         .select("*")
-        .order("created_at", { ascending: false });
+        .order('created_at', { ascending: false });
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
+
+      const typedData = result as TablesRow<TN>[];
+      setData(typedData);
       
-      setData(data as TablesRow<TN>[]);
       if (options?.onSuccess) {
-        options.onSuccess(data as TablesRow<TN>[]);
+        options.onSuccess(typedData);
       }
     } catch (error: any) {
       setError(error);
@@ -55,16 +55,15 @@ const useSupabase = <TN extends TableName>(
     setLoading(true);
     setError(null);
     try {
-      const { data, error } = await supabase
+      const { data: result, error } = await supabase
         .from(tableName)
-        .insert([newData])
+        .insert([newData as any])
         .select();
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
+      
       await fetchData();
-      return data;
+      return result;
     } catch (error: any) {
       setError(error);
       if (options?.onError) {
@@ -83,17 +82,16 @@ const useSupabase = <TN extends TableName>(
     setLoading(true);
     setError(null);
     try {
-      const { data, error } = await supabase
+      const { data: result, error } = await supabase
         .from(tableName)
-        .update(update)
+        .update(update as any)
         .eq('id', id)
         .select();
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
+      
       await fetchData();
-      return data;
+      return result;
     } catch (error: any) {
       setError(error);
       if (options?.onError) {
@@ -117,9 +115,8 @@ const useSupabase = <TN extends TableName>(
         .delete()
         .eq('id', id);
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
+      
       await fetchData();
     } catch (error: any) {
       setError(error);

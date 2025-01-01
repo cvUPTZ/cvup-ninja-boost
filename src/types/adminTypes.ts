@@ -1,14 +1,6 @@
-// src/types/adminTypes.ts
+import { Database } from "@/integrations/supabase/types";
 
-export interface User {
-  id: string;
-  name: string | null;
-  email: string;
-  role: 'user' | 'admin' | 'trainer';
-  status: 'active' | 'blocked';
-  lastLogin?: string;
-  created_at?: string;
-}
+export type User = Database['public']['Tables']['users']['Row'];
 
 export interface Course {
   id: string;
