@@ -32,7 +32,11 @@ export function DataTable<TData, TValue>({
   });
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="w-full h-32 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cvup-purple"></div>
+      </div>
+    );
   }
 
   return (

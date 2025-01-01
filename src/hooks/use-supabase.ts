@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { TableName, TablesRow, TablesInsert, TablesUpdate } from "@/types/supabase/tables";
+import { TableName, TablesRow, TablesInsert, TablesUpdate, isValidTableName } from "@/types/supabase/database.types";
 
 interface SupabaseHookOptions<T> {
   initialData?: T[];
@@ -8,15 +8,19 @@ interface SupabaseHookOptions<T> {
   onError?: (error: Error) => void;
 }
 
-const useSupabase = <T extends TablesRow<TN>, TN extends TableName = TableName>(
+const useSupabase = <TN extends TableName>(
   tableName: TN,
-  options?: SupabaseHookOptions<T>
+  options?: SupabaseHookOptions<TablesRow<TN>>
 ) => {
-  const [data, setData] = useState<T[] | null>(options?.initialData || null);
+  const [data, setData] = useState<TablesRow<TN>[] | null>(options?.initialData || null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
   const fetchData = async () => {
+    if (!isValidTableName(tableName)) {
+      throw new Error(`Invalid table name: ${tableName}`);
+    }
+    
     setLoading(true);
     setError(null);
     try {
@@ -28,9 +32,10 @@ const useSupabase = <T extends TablesRow<TN>, TN extends TableName = TableName>(
       if (error) {
         throw error;
       }
-      setData(data as T[]);
+      
+      setData(data as TablesRow<TN>[]);
       if (options?.onSuccess) {
-        options.onSuccess(data as T[]);
+        options.onSuccess(data as TablesRow<TN>[]);
       }
     } catch (error: any) {
       setError(error);
@@ -43,6 +48,10 @@ const useSupabase = <T extends TablesRow<TN>, TN extends TableName = TableName>(
   };
 
   const insertData = async (newData: TablesInsert<TN>) => {
+    if (!isValidTableName(tableName)) {
+      throw new Error(`Invalid table name: ${tableName}`);
+    }
+    
     setLoading(true);
     setError(null);
     try {
@@ -67,6 +76,10 @@ const useSupabase = <T extends TablesRow<TN>, TN extends TableName = TableName>(
   };
 
   const updateData = async (id: string, update: TablesUpdate<TN>) => {
+    if (!isValidTableName(tableName)) {
+      throw new Error(`Invalid table name: ${tableName}`);
+    }
+    
     setLoading(true);
     setError(null);
     try {
@@ -92,6 +105,10 @@ const useSupabase = <T extends TablesRow<TN>, TN extends TableName = TableName>(
   };
 
   const deleteData = async (id: string) => {
+    if (!isValidTableName(tableName)) {
+      throw new Error(`Invalid table name: ${tableName}`);
+    }
+    
     setLoading(true);
     setError(null);
     try {
