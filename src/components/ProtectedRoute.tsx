@@ -7,7 +7,7 @@ interface Props {
 }
 
 const ProtectedRoute: React.FC<Props> = ({ children }) => {
-  const { isAuthenticated, isAdmin } = useAuth();
+  const { isAuthenticated, isAdmin, isTrainer } = useAuth();
   const location = useLocation();
 
   // If not authenticated, redirect to login
@@ -15,8 +15,12 @@ const ProtectedRoute: React.FC<Props> = ({ children }) => {
     return <Navigate to="/login" replace />;
   }
 
-  // Only check for admin privileges on the admin route
+  // Check route access based on role
   if (location.pathname === "/admin" && !isAdmin) {
+    return <div>You do not have permission to access this page.</div>;
+  }
+
+  if (location.pathname === "/training" && !(isAdmin || isTrainer)) {
     return <div>You do not have permission to access this page.</div>;
   }
 
