@@ -63,7 +63,7 @@ export const UserManagementTable = () => {
       accessorKey: "status",
       header: "Statut",
       cell: ({ row }) => (
-        <Badge variant={row.original.status === "active" ? "success" : "destructive"}>
+        <Badge variant={row.original.status === "active" ? "default" : "destructive"}>
           {row.original.status === "active" ? "Actif" : "Bloqué"}
         </Badge>
       ),

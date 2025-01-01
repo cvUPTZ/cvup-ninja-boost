@@ -1,4 +1,3 @@
-// src/pages/AdminStats.tsx
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
@@ -28,9 +27,8 @@ const columns: ColumnDef<Apprenant>[] = [
     }
 ];
 
-
-const AdminStats: React.FC = () => {
-    const { data: students, loading } = useSupabase<"apprenants", Apprenant>("apprenants");
+const AdminStats = () => {
+    const { data: students, loading } = useSupabase('apprenants');
 
     return (
     <div className="container mx-auto px-4 py-8">
@@ -47,7 +45,6 @@ const AdminStats: React.FC = () => {
               <DataTable columns={columns} data={students || []} isLoading={loading}/>
           </CardContent>
       </Card>
-
     </div>
   );
 };

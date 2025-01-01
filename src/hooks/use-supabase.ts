@@ -31,11 +31,10 @@ const useSupabase = <TN extends TableName>(
 
       if (error) throw error;
 
-      const typedData = result as TablesRow<TN>[];
-      setData(typedData);
+      setData(result as TablesRow<TN>[]);
       
       if (options?.onSuccess) {
-        options.onSuccess(typedData);
+        options.onSuccess(result as TablesRow<TN>[]);
       }
     } catch (error: any) {
       setError(error);
@@ -57,18 +56,19 @@ const useSupabase = <TN extends TableName>(
     try {
       const { data: result, error } = await supabase
         .from(tableName)
-        .insert([newData as any])
+        .insert([newData])
         .select();
 
       if (error) throw error;
       
       await fetchData();
-      return result;
+      return result as TablesRow<TN>[];
     } catch (error: any) {
       setError(error);
       if (options?.onError) {
         options.onError(error);
       }
+      throw error;
     } finally {
       setLoading(false);
     }
@@ -84,19 +84,20 @@ const useSupabase = <TN extends TableName>(
     try {
       const { data: result, error } = await supabase
         .from(tableName)
-        .update(update as any)
+        .update(update)
         .eq('id', id)
         .select();
 
       if (error) throw error;
       
       await fetchData();
-      return result;
+      return result as TablesRow<TN>[];
     } catch (error: any) {
       setError(error);
       if (options?.onError) {
         options.onError(error);
       }
+      throw error;
     } finally {
       setLoading(false);
     }
@@ -123,6 +124,7 @@ const useSupabase = <TN extends TableName>(
       if (options?.onError) {
         options.onError(error);
       }
+      throw error;
     } finally {
       setLoading(false);
     }
