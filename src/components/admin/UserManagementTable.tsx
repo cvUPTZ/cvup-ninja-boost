@@ -1,161 +1,115 @@
-// src/components/admin/UserManagementTable.tsx
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { User } from "@/types/adminTypes";
+import React from 'react';
+import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
-import { useToast } from "../ui/use-toast";
-import { useState, useEffect } from "react";
-import { dataService } from "@/services/dataService";
+import { Badge } from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { MoreHorizontal } from "lucide-react";
+import { DataTable } from "@/components/ui/data-table";
+import useSupabase from "@/hooks/use-supabase";
+import { User } from "@/types/adminTypes";
+import { toast } from "sonner";
 
-interface UserManagementTableProps {
-  isLoading: boolean;
-}
+const formatDate = (date: string | null) => {
+  if (!date) return "Jamais";
+  return new Date(date).toLocaleDateString();
+};
 
-export const UserManagementTable = ({
-  isLoading,
-}: UserManagementTableProps) => {
-    const [users, setUsers] = useState<User[] | null>(null)
-    const [updating, setUpdating] = useState(false);
-    const [error, setError] = useState<Error | null>(null);
-    const { toast } = useToast();
+export const UserManagementTable = () => {
+  const { data, loading, error, updateData, deleteData } = useSupabase('users');
 
-
-    const fetchData = async () => {
-        try {
-            const users = await dataService.fetchData<User>("users");
-            setUsers(users);
-        } catch (err: any) {
-          setError(err)
-            toast({
-                title: 'Error',
-                description: `An error occured: ${err.message}`,
-                variant: 'destructive',
-            })
-        }
-    }
-
-
-  useEffect(() => {
-     fetchData();
-     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
-
-  const handleBlockUser = async (userId: string) => {
-      setUpdating(true)
+  const handleStatusChange = async (userId: string, newStatus: string) => {
     try {
-      await dataService.updateData("users", userId, { status: "blocked" });
-       toast({
-            title: 'Success',
-            description: 'User blocked successfully',
-        });
-      await fetchData();
-    } catch (err: any) {
-           toast({
-             title: 'Error',
-             description: `Failed to block user: ${err.message}`,
-              variant: 'destructive',
-            })
-    } finally {
-        setUpdating(false);
+      await updateData(userId, { status: newStatus });
+      toast.success(`Statut de l'utilisateur mis à jour avec succès`);
+    } catch (error: any) {
+      toast.error(`Erreur lors de la mise à jour du statut: ${error.message}`);
     }
   };
 
-    const handleUnblockUser = async (userId: string) => {
-        setUpdating(true)
-        try {
-           await dataService.updateData("users", userId, { status: "active" });
-            toast({
-             title: 'Success',
-             description: 'User unblocked successfully',
-         });
-            await fetchData();
-        } catch (err: any) {
-            toast({
-             title: 'Error',
-             description: `Failed to unblock user: ${err.message}`,
-              variant: 'destructive',
-           })
-        }  finally {
-           setUpdating(false);
-        }
+  const handleDeleteUser = async (userId: string) => {
+    if (window.confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?')) {
+      try {
+        await deleteData(userId);
+        toast.success(`Utilisateur supprimé avec succès`);
+      } catch (error: any) {
+        toast.error(`Erreur lors de la suppression: ${error.message}`);
+      }
     }
+  };
 
+  const columns: ColumnDef<User>[] = [
+    {
+      accessorKey: "id",
+      header: "ID",
+    },
+    {
+      accessorKey: "name",
+      header: "Nom",
+    },
+    {
+      accessorKey: "email",
+      header: "Email",
+    },
+    {
+      accessorKey: "role",
+      header: "Rôle",
+    },
+    {
+      accessorKey: "status",
+      header: "Statut",
+      cell: ({ row }) => (
+        <Badge variant={row.original.status === "active" ? "success" : "destructive"}>
+          {row.original.status === "active" ? "Actif" : "Bloqué"}
+        </Badge>
+      ),
+    },
+    {
+      accessorKey: "last_login",
+      header: "Dernière connexion",
+      cell: ({ row }) => formatDate(row.original.last_login),
+    },
+    {
+      id: "actions",
+      cell: ({ row }) => {
+        const user = row.original;
+        return (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0">
+                <span className="sr-only">Open menu</span>
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => handleStatusChange(user.id, user.status === "active" ? "blocked" : "active")}>
+                {user.status === "active" ? "Bloquer" : "Débloquer"}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleDeleteUser(user.id)}>
+                Supprimer
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        );
+      },
+    },
+  ];
+
+  if (error) {
+    return <div>Error loading users: {error.message}</div>;
+  }
 
   return (
-    <Card className="bg-white shadow-md">
-      <CardHeader>
-        <CardTitle>User Management</CardTitle>
-      </CardHeader>
-      <CardContent>
-          {isLoading || updating ? (
-              <p>Loading users...</p>
-          ) : users && users.length > 0 ? (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Last Login</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {users.map((user) => (
-                <TableRow key={user.id}>
-                  <TableCell>{user.name}</TableCell>
-                  <TableCell>{user.email}</TableCell>
-                  <TableCell>{user.role}</TableCell>
-                  <TableCell>
-                    <span
-                      className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                        user.status === "active"
-                          ? "bg-green-100 text-green-800"
-                          : "bg-red-100 text-red-800"
-                      }`}
-                    >
-                      {user.status}
-                    </span>
-                  </TableCell>
-                  <TableCell>{user.lastLogin || "Never"}</TableCell>
-                  <TableCell>
-                    {user.status === "active" ? (
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => handleBlockUser(user.id)}
-                          disabled={updating}
-                      >
-                        Block
-                      </Button>
-                    ) : (
-                      <Button
-                        variant="default"
-                        size="sm"
-                        onClick={() => handleUnblockUser(user.id)}
-                          disabled={updating}
-                      >
-                        Unblock
-                      </Button>
-                    )}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        ) : (
-          <p>No users found</p>
-        )}
-      </CardContent>
-    </Card>
+    <div className="container mx-auto py-10">
+      <DataTable
+        columns={columns}
+        data={data as User[] || []}
+        isLoading={loading}
+      />
+    </div>
   );
 };
