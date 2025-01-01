@@ -39,6 +39,123 @@ export type Database = {
         }
         Relationships: []
       }
+      apprenants: {
+        Row: {
+          created_at: string | null
+          email: string
+          full_name: string
+          id: string
+          phone: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          full_name: string
+          id?: string
+          phone?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          full_name?: string
+          id?: string
+          phone?: string | null
+        }
+        Relationships: []
+      }
+      formateurs: {
+        Row: {
+          created_at: string | null
+          email: string
+          full_name: string
+          id: string
+          phone: string | null
+          speciality: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          full_name: string
+          id?: string
+          phone?: string | null
+          speciality?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          full_name?: string
+          id?: string
+          phone?: string | null
+          speciality?: string | null
+        }
+        Relationships: []
+      }
+      formations: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          duration: number
+          id: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          duration: number
+          id?: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          duration?: number
+          id?: string
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      inscriptions_formation: {
+        Row: {
+          apprenant_id: string | null
+          created_at: string | null
+          id: string
+          seance_id: string | null
+          status: string | null
+        }
+        Insert: {
+          apprenant_id?: string | null
+          created_at?: string | null
+          id?: string
+          seance_id?: string | null
+          status?: string | null
+        }
+        Update: {
+          apprenant_id?: string | null
+          created_at?: string | null
+          id?: string
+          seance_id?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inscriptions_formation_apprenant_id_fkey"
+            columns: ["apprenant_id"]
+            isOneToOne: false
+            referencedRelation: "apprenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inscriptions_formation_seance_id_fkey"
+            columns: ["seance_id"]
+            isOneToOne: false
+            referencedRelation: "seances_formation"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       page_views: {
         Row: {
           id: string
@@ -62,6 +179,51 @@ export type Database = {
           visitor_ip?: string
         }
         Relationships: []
+      }
+      seances_formation: {
+        Row: {
+          created_at: string | null
+          date_debut: string
+          date_fin: string
+          formateur_id: string | null
+          formation_id: string | null
+          id: string
+          status: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          date_debut: string
+          date_fin: string
+          formateur_id?: string | null
+          formation_id?: string | null
+          id?: string
+          status?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          date_debut?: string
+          date_fin?: string
+          formateur_id?: string | null
+          formation_id?: string | null
+          id?: string
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "seances_formation_formateur_id_fkey"
+            columns: ["formateur_id"]
+            isOneToOne: false
+            referencedRelation: "formateurs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "seances_formation_formation_id_fkey"
+            columns: ["formation_id"]
+            isOneToOne: false
+            referencedRelation: "formations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_interactions: {
         Row: {
