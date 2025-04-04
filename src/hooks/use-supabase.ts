@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { TableName, TablesRow, TablesInsert, TablesUpdate, isValidTableName } from "@/types/supabase/database.types";
@@ -63,7 +64,7 @@ const useSupabase = <TN extends TableName>(
       if (error) throw error;
       
       await fetchData();
-      return result as TablesRow<TN>[];
+      return result as unknown as TablesRow<TN>[];
     } catch (error: any) {
       setError(error);
       if (options?.onError) {
@@ -92,7 +93,7 @@ const useSupabase = <TN extends TableName>(
       if (error) throw error;
       
       await fetchData();
-      return result as TablesRow<TN>[];
+      return result as unknown as TablesRow<TN>[];
     } catch (error: any) {
       setError(error);
       if (options?.onError) {
